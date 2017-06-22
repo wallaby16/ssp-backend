@@ -2,6 +2,7 @@ package newrelic
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 const (
@@ -12,9 +13,9 @@ const (
 func RegisterRoutes(r *gin.RouterGroup) {
 	// Quotas
 	r.GET("/newrelic/chargeback", func(c *gin.Context) {
-		chargeBackHandler(c)
-		//c.HTML(http.StatusOK, chargeBackURL, gin.H{})
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{})
 	})
+	r.POST("/newrelic/chargeback", chargeBackHandler)
 }
 
 

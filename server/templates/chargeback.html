@@ -1,5 +1,209 @@
 {{ template "header.html" . }}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"
+        crossorigin="anonymous"></script>
+
 <p>Chargeback</p>
+
+<form method="post">
+    <button class="btn btn-primary" type="submit">GetIt</button>
+</form>
+
+<canvas id="costLine" style="max-width: 700px; max-height: 700px"></canvas>
+
+<script type="text/javascript">
+    var costs = {
+        "Project": "nova-prod",
+        "Start": "2017-04-01T00:00:00+02:00",
+        "End": "2017-04-30T00:00:00+02:00",
+        "AccountAssignment": "70029880",
+        "QuotaCPU": 38,
+        "QuotaMemory": 123,
+        "RequestedCPU": 0.012000718907260951,
+        "RequestedMemory": 14.688576125808769,
+        "Storage": 0,
+        "TotalUsedCPU": 0.8330593752576934,
+        "TotalUsedMemory": 246.39576975554274,
+        "UsageDataPoints": [
+            {
+                "UsedCPU": 0.7163899131295911,
+                "UsedMemory": 215.8115901288,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.5872275180930155,
+                "UsedMemory": 217.92065145479998,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.9124090728697192,
+                "UsedMemory": 210.70864002359997,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.8795319271779154,
+                "UsedMemory": 236.53375219319997,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.1113061133345326,
+                "UsedMemory": 233.19050278113747,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.9915024953358369,
+                "UsedMemory": 224.44053517131326,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.7677587674737443,
+                "UsedMemory": 215.7224988399375,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.5966363428758195,
+                "UsedMemory": 213.8681071152,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.4894682655362121,
+                "UsedMemory": 220.710904032,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.8920043556595484,
+                "UsedMemory": 227.9638477105617,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.700024449044693,
+                "UsedMemory": 237.0866987421609,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.7907923332452773,
+                "UsedMemory": 223.95347086360076,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.1204535801644524,
+                "UsedMemory": 235.5519677588672,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.5828165665986598,
+                "UsedMemory": 261.99540692903906,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.682414516018951,
+                "UsedMemory": 260.9268639744,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.6356494615632109,
+                "UsedMemory": 268.9644797202422,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.5566771378918492,
+                "UsedMemory": 233.6967873864,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.8340454184057888,
+                "UsedMemory": 211.531112394,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.0089013904197055,
+                "UsedMemory": 242.37445668480234,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.9845999836702539,
+                "UsedMemory": 251.25661268543905,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.8987613404862641,
+                "UsedMemory": 233.04915368903906,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.6967751556049189,
+                "UsedMemory": 240.58110411119998,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.5566000203479634,
+                "UsedMemory": 253.09838334719998,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.8822065142844804,
+                "UsedMemory": 245.2977692569992,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.7500524861109734,
+                "UsedMemory": 224.7780365208,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.057665333943907,
+                "UsedMemory": 298.7963307612,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.2112331142354815,
+                "UsedMemory": 335.9811650148,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 1.2800230443424372,
+                "UsedMemory": 340.5768755911992,
+                "End": "2017-04-30T00:00:00+02:00"
+            },
+            {
+                "UsedCPU": 0.9847952646079066,
+                "UsedMemory": 329.1096180288,
+                "End": "2017-04-30T00:00:00+02:00"
+            }
+        ],
+        "Costs": {
+            "QuotaCPU": 404,
+            "QuotaMemory": 327,
+            "Storage": 0,
+            "RequestedCPU": 1,
+            "RequestedMemory": 157,
+            "UsedCPU": 36,
+            "UsedMemory": 2618,
+            "Total": 3543
+        }
+    };
+
+    // Create array for CPU over time
+    var cpuUsage = costs.UsageDataPoints.map(function (db) {
+        return db.UsedCPU
+    });
+    var labels = costs.UsageDataPoints.map(function(db) {
+        return db.End
+    });
+
+    console.log(cpuUsage);
+
+    var ctx = "costLine";
+    var costLine = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{data: cpuUsage}],
+            labels: labels
+        },
+        options: {}
+    });
+
+
+</script>
 
 {{ template "footer.html" . }}
