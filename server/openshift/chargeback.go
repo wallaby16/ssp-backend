@@ -27,6 +27,7 @@ const (
 
 func chargeBackHandler(c *gin.Context) {
 	// Debug
+	// TODO REMOVE ME
 	//dummyResponse := Resources{
 	//	Project:           "test-projekt",
 	//	Start:             time.Date(2017, time.April, 1, 0, 0, 0, 0, time.Local),
@@ -64,6 +65,7 @@ func chargeBackHandler(c *gin.Context) {
 	//	"dataPoints": string(bytes),
 	//})
 	//return
+
 	project := c.PostForm("project")
 	username := common.GetUserName(c)
 	year := c.PostForm("year")
@@ -121,6 +123,7 @@ func chargeBackHandler(c *gin.Context) {
 
 func validateChargeback(project string, username string, year string, month string) (*time.Time, *time.Time, error) {
 	// Validate project access
+	// TODO: REMOVE COMMENT
 	//if err := checkAdminPermissions(username, project); err != nil {
 	//	return nil, nil, err
 	//}
@@ -143,7 +146,7 @@ func validateChargeback(project string, username string, year string, month stri
 
 func calculatePrices(resources *Resources) {
 	// Define prices
-	// Todo from variables
+	// TODO from variables
 	unitPrices := UnitPrices{
 		quotaCPU:        10.0,
 		quotaMemory:     2.5,
@@ -153,7 +156,7 @@ func calculatePrices(resources *Resources) {
 		usedMemory:      10,
 		storage:         1.0}
 
-	// Todo from variable
+	// TODO from variable
 	fee := 1.0625
 
 	// Calculate single Costs
