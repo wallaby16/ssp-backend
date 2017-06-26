@@ -1,4 +1,4 @@
-package newrelic
+package openshift
 
 import (
 	"fmt"
@@ -14,7 +14,10 @@ import (
 
 	"math"
 
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"strconv"
 )
 
 const (
@@ -23,28 +26,75 @@ const (
 )
 
 func chargeBackHandler(c *gin.Context) {
-	// Todo get me from gin
-	start := time.Date(2017, time.April, 1, 0, 0, 0, 0, time.Local)
-	end := time.Date(2017, time.April, 30, 0, 0, 0, 0, time.Local)
+	// Debug
+	//dummyResponse := Resources{
+	//	Project:           "test-projekt",
+	//	Start:             time.Date(2017, time.April, 1, 0, 0, 0, 0, time.Local),
+	//	End:               time.Date(2017, time.April, 30, 0, 0, 0, 0, time.Local),
+	//	AccountAssignment: "1234",
+	//	QuotaCPU:          38,
+	//	QuotaMemory:       123,
+	//	RequestedCPU:      0.012020203020402,
+	//	RequestedMemory:   14.56662356236,
+	//	Storage:           100,
+	//	TotalUsedCPU:      0.84323,
+	//	TotalUsedMemory:   245.214124125,
+	//	UsageDataPoints: []UsageDataPoint{
+	//		{
+	//			End:        time.Now(),
+	//			UsedCPU:    0.1234,
+	//			UsedMemory: 214.0001234,
+	//		},
+	//	},
+	//	Costs: Costs{
+	//		QuotaCPU:        404,
+	//		QuotaMemory:     327,
+	//		Storage:         10,
+	//		RequestedCPU:    1,
+	//		RequestedMemory: 157,
+	//		UsedCPU:         36,
+	//		UsedMemory:      2618,
+	//		Total:           3543,
+	//	},
+	//}
+	//bytes, _ := json.Marshal(dummyResponse.UsageDataPoints)
+	//
+	//c.HTML(http.StatusOK, chargeBackURL, gin.H{
+	//	"data":       dummyResponse,
+	//	"dataPoints": string(bytes),
+	//})
+	//return
+	project := c.PostForm("project")
+	username := common.GetUserName(c)
+	year := c.PostForm("year")
+	month := c.PostForm("month")
 
-	quotas, err := getQuotasFromNewRelic(start, end, "nova-prod")
+	start, end, err := validateChargeback(project, username, year, month)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	assignments, err := getAssignmentsFromNewRelic("nova-prod")
+
+	quotas, err := getQuotasFromNewRelic(*start, *end, project)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	assignments, err := getAssignmentsFromNewRelic(project)
+	if err != nil {
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	usages, err := getUsagesFromNewRelic(start, end, "nova-prod")
+	usages, err := getUsagesFromNewRelic(*start, *end, project)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -55,14 +105,40 @@ func chargeBackHandler(c *gin.Context) {
 	// Mangle the results to an array
 	resources := calculateResources(quotas, assignments, *usages)
 
-	resources.Project = "nova-prod"
-	resources.Start = start
-	resources.End = end
+	resources.Project = project
+	resources.Start = *start
+	resources.End = *end
 
 	// Calculate Costs for the resources
 	calculatePrices(&resources)
 
-	c.JSON(http.StatusOK, resources)
+	bytes, _ := json.Marshal(resources.UsageDataPoints)
+	c.HTML(http.StatusOK, chargeBackURL, gin.H{
+		"data":       resources,
+		"dataPoints": string(bytes),
+	})
+}
+
+func validateChargeback(project string, username string, year string, month string) (*time.Time, *time.Time, error) {
+	// Validate project access
+	//if err := checkAdminPermissions(username, project); err != nil {
+	//	return nil, nil, err
+	//}
+
+	// Parse month & year
+	yearI, err := strconv.Atoi(year)
+	if err != nil {
+		return nil, nil, errors.New("Invalid year: " + year)
+	}
+	monthI, err := strconv.Atoi(month)
+	if err != nil {
+		return nil, nil, errors.New("Invalid month: " + month)
+	}
+
+	start := time.Date(yearI, time.Month(monthI), 1, 0, 0, 0, 0, time.Local)
+	end := start.AddDate(0, 1, 0).Add(-time.Nanosecond)
+
+	return &start, &end, nil
 }
 
 func calculatePrices(resources *Resources) {
@@ -100,10 +176,10 @@ func calculatePrices(resources *Resources) {
 func calculateResources(quota *Quota, assignment *Assignment, usages []Usage) Resources {
 	// Add Quotas and Requests to resources
 	resources := Resources{QuotaCPU: quota.Results[0].Average,
-		RequestedCPU:                quota.Results[1].Average,
-		QuotaMemory:                 quota.Results[2].Average,
-		RequestedMemory:             quota.Results[3].Average,
-		Storage:                     quota.Results[4].Average}
+		RequestedCPU:    quota.Results[1].Average,
+		QuotaMemory:     quota.Results[2].Average,
+		RequestedMemory: quota.Results[3].Average,
+		Storage:         quota.Results[4].Average}
 
 	// Add Assigned to resources
 	resources.AccountAssignment = assignment.Results[0].Latest
@@ -203,7 +279,7 @@ func getUsagesFromNewRelic(start time.Time, end time.Time, project string) (*[]U
 			SELECT rate(sum(cpuPercent), 54 minutes)/100 as CPU,
 				   rate(sum(memoryResidentSizeBytes), 54 minutes)/(1000*1000*1000) as GB
 			FROM ProcessSample
-			WHERE %v AND `+ "`containerLabel_io.kubernetes.pod.namespace`"+ `LIKE '%v'
+			WHERE %v AND `+"`containerLabel_io.kubernetes.pod.namespace`"+`LIKE '%v'
 			%v
 			WITH TIMEZONE 'Europe/Zurich' LIMIT 1000`,
 			"fullHostname like '%.sbb.ch'", project, timeFilter)
@@ -221,9 +297,9 @@ func getUsagesFromNewRelic(start time.Time, end time.Time, project string) (*[]U
 		}
 
 		if current.Before(end) {
-			usage.End = end
-		} else {
 			usage.End = current
+		} else {
+			usage.End = end
 		}
 
 		usages = append(usages, usage)

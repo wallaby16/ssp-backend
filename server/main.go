@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 	"github.com/oscp/cloud-selfservice-portal/server/openshift"
-	"github.com/oscp/cloud-selfservice-portal/server/newrelic"
 )
 
 func main() {
@@ -44,9 +43,6 @@ func main() {
 
 		// Openshift routes
 		openshift.RegisterRoutes(auth)
-
-		// NewRelic routes
-		newrelic.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")
