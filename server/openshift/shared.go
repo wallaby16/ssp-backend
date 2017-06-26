@@ -24,6 +24,7 @@ const (
 	newVolumeURL         = "newvolume.html"
 	fixVolumeURL         = "fixvolume.html"
 	growVolumeURL        = "growvolume.html"
+	chargeBackURL        = "chargeback.html"
 	genericAPIError      = "Fehler beim Aufruf der OpenShift-API"
 )
 
@@ -78,6 +79,12 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		c.HTML(http.StatusOK, growVolumeURL, gin.H{})
 	})
 	r.POST("/openshift/growvolume", growVolumeHandler)
+
+	// Chargeback
+	r.GET("/newrelic/chargeback", func(c *gin.Context) {
+		c.HTML(http.StatusOK, chargeBackURL, gin.H{})
+	})
+	r.POST("/newrelic/chargeback", chargeBackHandler)
 }
 
 func checkAdminPermissions(username string, project string) error {

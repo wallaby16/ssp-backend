@@ -1,0 +1,157 @@
+{{ template "header.html" . }}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"
+        crossorigin="anonymous"></script>
+
+<div class="jumbotron">
+    <h1><span class="fa fa-bar-chart"></span> Projektkosten berechnen</h1>
+    <p>Hier kannst die Kosten deines Projektes aufgeteilt sehen</p>
+</div>
+
+<form method="post" onsubmit="spinner();">
+    <div class="form-group">
+        <label for="project">Projektname</label>
+        <input type="text" class="form-control" required id="project" name="project" placeholder="projektname-dev">
+    </div>
+    <div class="form-group">
+        <label for="month">Monat:</label>
+        <select class="form-control" id="month" name="month">
+            <option value="1">Januar</option>
+            <option value="2">Februar</optionv>
+            <option value="3">März</option>
+            <option value="4">April</option>
+            <option value="5">Mai</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">August</optionv>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</optionv>
+            <option value="12">Dezember</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="year">Jahr:</label>
+        <select class="form-control" id="year" name="year">
+            <option>2017</option>
+            <option>2018</option>
+            <option>2019</option>
+            <option>2020</option>
+            <option>2021</option>
+        </select>
+    </div>
+    <button class="btn btn-primary" id="submitBtn" type="submit">Kosten berechnen</button>
+</form>
+
+{{ template "spinner.html" . }}
+
+<br><br>
+
+{{ if .data }}
+<table class="table table-condensed table-striped">
+    <tr>
+        <th>Projekt</th>
+        <td>{{ .data.Project }}</td>
+        <td></td>
+    </tr>
+    <tr>
+        <th>Kontierungsnummer</th>
+        <td>{{ .data.AccountAssignment }}</td>
+        <td></td>
+    </tr>
+    <tr>
+        <th>CPU Quota</th>
+        <td>{{ .data.QuotaCPU }}</td>
+        <td>{{ .data.Costs.QuotaCPU }} CHF</td>
+    </tr>
+    <tr>
+        <th>Memory Quota</th>
+        <td>{{ .data.QuotaMemory }}</td>
+        <td>{{ .data.Costs.QuotaMemory }} CHF</td>
+    </tr>
+    <tr>
+        <th>CPU Requests</th>
+        <td>{{ .data.RequestedCPU }}</td>
+        <td>{{ .data.Costs.RequestedCPU }} CHF</td>
+    </tr>
+    <tr>
+        <th>Memory Requests</th>
+        <td>{{ .data.RequestedMemory }}</td>
+        <td>{{ .data.Costs.RequestedMemory }} CHF</td>
+    </tr>
+    <tr>
+        <th>Storage</th>
+        <td>{{ .data.Storage }}</td>
+        <td>{{ .data.Costs.Storage }} CHF</td>
+    </tr>
+    <tr>
+        <th>Durchschnitt CPU Auslastung</th>
+        <td>{{ .data.TotalUsedCPU }}</td>
+        <td>{{ .data.Costs.UsedCPU }} CHF</td>
+    </tr>
+    <tr>
+        <th>Durchschnitt Memory Auslastung</th>
+        <td>{{ .data.TotalUsedMemory }}</td>
+        <td>{{ .data.Costs.UsedMemory }} CHF</td>
+    </tr>
+    <tr>
+        <th>Total</th>
+        <td></td>
+        <td>{{ .data.Costs.Total }} CHF</td>
+    </tr>
+</table>
+
+<canvas id="cpuUsageChart" style="max-width: 700px; max-height: 700px"></canvas>
+<canvas id="memoryUsageChart" style="max-width: 700px; max-height: 700px"></canvas>
+{{ end }}
+
+<script type="text/javascript">
+    var dataPoints = JSON.parse({{ .dataPoints }})
+
+    if (dataPoints) {
+        // create arrays for chart
+                          var cpuUsage = dataPoints.map(function (db) {
+                              return Math.round(db.UsedCPU * 100)
+                          });
+        var memoryUsage = dataPoints.map(function (db) {
+            return Math.round(db.UsedMemory)
+        });
+        var labels = dataPoints.map(function (db) {
+            return db.End.substring(0, 10)
+        });
+
+        var cpu = "cpuUsageChart";
+        var cpuUsageChart = new Chart(cpu, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'CPU Nutzung',
+                    data: cpuUsage,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)'
+                    ]
+                }],
+                labels: labels
+            },
+            options: {}
+        });
+
+        var mem = "memoryUsageChart";
+        var memoryUsageChart = new Chart(mem, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Memory Nutzung',
+                    data: memoryUsage,
+                    backgroundColor: [
+                        'rgba(255, 159, 64, 0.2'
+                    ]
+                }],
+                labels: labels
+            },
+            options: {}
+        });
+    }
+</script>
+
+{{ template "footer.html" . }}
