@@ -12,12 +12,12 @@ func init() {
 
 func TestGrowVolume_Empty(t *testing.T) {
 	err := growVolume("", "")
-	assert(t, err == nil, "growVolume should throw error if called empty")
+	assert(t, err != nil, "growVolume should throw error if called empty")
 }
 
 func TestGrowVolume_WrongSize(t *testing.T) {
 	err := growVolume("pv", "101G")
-	assert(t, err == nil, "growVolume should throw error if called with wrong size")
+	assert(t, err != nil, "growVolume should throw error if called with wrong size")
 }
 
 func TestGrowVolume_WrongSizeMB(t *testing.T) {

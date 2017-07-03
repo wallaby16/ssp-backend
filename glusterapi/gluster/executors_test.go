@@ -9,6 +9,8 @@ func init() {
 }
 
 func TestExecuteCommandsLocally(t *testing.T) {
+	commands = nil
+
 	executeCommandsLocally([]string{"test", "test2"})
 
 	equals(t, "bash -c test", commands[0])

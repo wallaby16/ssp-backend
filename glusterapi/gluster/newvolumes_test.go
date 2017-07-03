@@ -12,12 +12,12 @@ func init() {
 
 func TestCreateVolume_Empty(t *testing.T){
 	_, err := createVolume("", "")
-	assert(t, err == nil, "createVolume should throw error if called empty")
+	assert(t, err != nil, "createVolume should throw error if called empty")
 }
 
 func TestCreateVolume_WrongSize(t *testing.T) {
 	_, err := createVolume("pv", "101G")
-	assert(t, err == nil, "createVolume should throw error if called with wrong size")
+	assert(t, err != nil, "createVolume should throw error if called with wrong size")
 }
 
 func TestCreateVolume_WrongSizeMB(t *testing.T) {
