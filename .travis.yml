@@ -10,7 +10,8 @@ install:
 - go get gopkg.in/jarcoal/httpmock.v1
 
 script:
-- go test github.com/oscp/cloud-selfservice-portal/...
+- go test -v github.com/oscp/cloud-selfservice-portal/glusterapi/...
+- go test -v github.com/oscp/cloud-selfservice-portal/server/...
 - gox -osarch="linux/amd64" -output "./dist/{{.Dir}}" github.com/oscp/cloud-selfservice-portal/glusterapi
 - cp ./install/* ./dist/
 - cd ./dist/

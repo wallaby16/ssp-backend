@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +17,7 @@ func getVolumeUsage(pvName string) (*models.VolInfo, error) {
 
 	cmd := fmt.Sprintf("df --output=size,used,source | grep %v", pvName)
 
-	out, err := exec.Command("bash", "-c", cmd).Output()
+	out, err := ExecRunner.Run("bash", "-c", cmd)
 	if err != nil {
 		if strings.Contains(err.Error(), "exit status 1") {
 			return nil, fmt.Errorf("PV %v does not exist", pvName)
