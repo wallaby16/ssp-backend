@@ -5,7 +5,7 @@
     <p>Hier kannst du ein OpenShift Projekt erstellen</p>
 </div>
 
-<form id="form" method="post">
+<form id="form" method="post" onsubmit="spinner();">
     <div class="form-group">
         <label for="project">Projektname</label>
         <p><em>Projektname darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p>
@@ -19,8 +19,10 @@
         <label for="megaid">MEGA-ID</label>
         <input type="text" class="form-control" id="megaid" name="megaid">
     </div>
-    <button type="submit" class="btn btn-primary">Projekt erstellen</button>
+    <button type="submit" id="submitBtn" class="btn btn-primary">Projekt erstellen</button>
 </form>
+
+{{ template "spinner.html" . }}
 
 <script>
   $('#project').keyup(function(){

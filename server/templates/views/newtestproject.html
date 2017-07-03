@@ -13,7 +13,7 @@
     - Nicht gelöschte Testprojekte werden durch das Cloud-Team gelöscht<br/>
 </div>
 
-<form method="post">
+<form method="post" onsubmit="spinner();">
     <div class="form-group">
         <label for="project">Projektname</label>
         <p><em>Projektname darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p>
@@ -22,8 +22,10 @@
             <input type="text" class="form-control" required id="project" name="project" placeholder="testprojekt">
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Test-Projekt erstellen</button>
+    <button type="submit" id="submitBtn" class="btn btn-primary">Test-Projekt erstellen</button>
 </form>
+
+{{ template "spinner.html" . }}
 
 <script>
   $('#project').keyup(function(){
