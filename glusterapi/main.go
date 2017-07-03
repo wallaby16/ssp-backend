@@ -22,6 +22,8 @@ func init() {
 	if len(gluster.BasePath) == 0 || len(gluster.PoolName) == 0 || len(gluster.VgName) == 0 || len(gluster.Secret) == 0 {
 		log.Fatal("Must specify parameters 'poolName', 'basePath', 'vgName' and 'secret'")
 	}
+
+	gluster.ExecRunner = gluster.BashRunner{}
 }
 
 func main() {
