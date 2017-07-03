@@ -7,6 +7,10 @@ before_install:
 
 install:
 - go get github.com/gin-gonic/gin
+- go get github.com/Jeffail/gabs
+- go get github.com/jtblin/go-ldap-client
+- go get gopkg.in/appleboy/gin-jwt.v2
+- go get gopkg.in/dgrijalva/jwt-go.v3
 - go get gopkg.in/jarcoal/httpmock.v1
 
 script:
