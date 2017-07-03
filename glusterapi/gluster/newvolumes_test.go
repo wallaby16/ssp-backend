@@ -54,6 +54,8 @@ func TestCreateVolume(t *testing.T) {
 	equals(t, "bash -c mkdir /project/pv1/brick", commands[7])
 	equals(t, "bash -c semanage fcontext -a -t glusterd_brick_t /project/pv1/brick", commands[8])
 	equals(t, "bash -c restorecon -Rv /project/pv1/brick", commands[9])
-	equals(t, "bash -c gluster volume create vol_project_pv1 replica 2 10.171.74.153:/project/pv1/brick ", commands[11])
+
+	ip, _ := getLocalServersIP()
+	equals(t, "bash -c gluster volume create vol_project_pv1 replica 2 " + ip + ":/project/pv1/brick ", commands[11])
 	equals(t, "bash -c gluster volume start vol_project_pv1", commands[12])
 }
