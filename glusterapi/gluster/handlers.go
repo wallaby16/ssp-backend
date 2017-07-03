@@ -61,9 +61,9 @@ func CreateLVHandler(c *gin.Context) {
 func GrowVolumeHandler(c *gin.Context) {
 	var json models.GrowVolumeCommand
 	if c.BindJSON(&json) == nil {
-		log.Printf("Got new request to grow volume. PvName: %v, growSize: %v", json.PvName, json.GrowSize)
+		log.Printf("Got new request to grow volume. PvName: %v, NewSize: %v", json.PvName, json.NewSize)
 
-		if err := growVolume(json.PvName, json.GrowSize); err != nil {
+		if err := growVolume(json.PvName, json.NewSize); err != nil {
 			log.Println("Growing volume failed", err.Error())
 
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -84,9 +84,9 @@ func GrowVolumeHandler(c *gin.Context) {
 func GrowLVHandler(c *gin.Context) {
 	var json models.GrowVolumeCommand
 	if c.BindJSON(&json) == nil {
-		log.Printf("Got new request to grow LV. PvName: %v, growSize: %v", json.PvName, json.GrowSize)
+		log.Printf("Got new request to grow LV. PvName: %v, NewSize: %v", json.PvName, json.NewSize)
 
-		if err := growLvLocally(json.PvName, json.GrowSize); err != nil {
+		if err := growLvLocally(json.PvName, json.NewSize); err != nil {
 			log.Print("Growing LV failed", err.Error())
 
 			c.JSON(http.StatusInternalServerError, gin.H{

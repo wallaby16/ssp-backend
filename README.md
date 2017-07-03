@@ -103,6 +103,7 @@ OPENSHIFT\_TOKEN|The token from the service-account|
 GIN\_MODE|Mode of the Webframework|debug/release
 MAX\_CPU|How many CPU can a user assign to his project|30
 MAX\_MEMORY|How many GB memory can a user assign to his project|50
+MAX\_GB|How many GB storage can a user order|100
 GLUSTER\_API\_URL|The URL of your Gluster-API|http://glusterserver01:80
 GLUSTER\_SECRET|The basic auth password you configured on the gluster api|secret
 GLUSTER\_IPS|IP addresses of the gluster endpoints|192.168.1.1,192.168.1.2
@@ -110,7 +111,19 @@ GLUSTER\_IPS|IP addresses of the gluster endpoints|192.168.1.1,192.168.1.2
 ## The GlusterFS api
 Use/see the service unit file in ./install/
 
-## Monitoring endpoints
+### Parameters
+```bash
+glusterapi -poolName=your-pool -vgName=your-vg -basePath=/your/mount -secret=yoursecret -port=yourport
+
+# poolName = The name of the existing LV-pool that should be used to create new logical volumes
+# vgName = The name of the vg where the pool lies on
+# basePath = The path where the new volumes should be mounted. E.g. /gluster/mypool
+# secret = The basic auth secret you specified above in the SSP
+# port = The port where the server should run
+# maxGB = Optinally specify max GB a volume can be. Default is 100
+```
+
+### Monitoring endpoints
 The gluster api has two public endpoints for monitoring purposes. Call them this way:
 
 The first endpoint returns usage statistics:
@@ -140,3 +153,5 @@ Date: Mon, 12 Jun 2017 14:23:37 GMT
 Content-Length: 70
 {"message":"Error used 4.430051813471502 is bigger than threshold: 3"}
 ```
+
+For the other (internal) endpoints see the code (glusterapi/main.go)

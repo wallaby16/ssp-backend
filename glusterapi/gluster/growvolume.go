@@ -11,45 +11,45 @@ import (
 	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
 )
 
-func growVolume(pvName string, growSize string) error {
-	if len(pvName) == 0 || len(growSize) == 0 {
+func growVolume(pvName string, newSize string) error {
+	if len(pvName) == 0 || len(newSize) == 0 {
 		return errors.New("Not all input values provided")
 	}
 
-	if err := validateSizeInput(growSize); err != nil {
+	if err := validateSizeInput(newSize); err != nil {
 		return err
 	}
 
-	if err := growLvOnAllServers(pvName, growSize); err != nil {
+	if err := growLvOnAllServers(pvName, newSize); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func growLvOnAllServers(pvName string, growSize string) error {
+func growLvOnAllServers(pvName string, newSize string) error {
 	// Create the lv on all other gluster servers
-	if err := growLvOnOtherServers(pvName, growSize); err != nil {
+	if err := growLvOnOtherServers(pvName, newSize); err != nil {
 		return err
 	}
 
 	// Create the lv locally
-	if err := growLvLocally(pvName, growSize); err != nil {
+	if err := growLvLocally(pvName, newSize); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func growLvOnOtherServers(pvName string, growSize string) error {
+func growLvOnOtherServers(pvName string, newSize string) error {
 	remotes, err := getGlusterPeerServers()
 	if err != nil {
 		return err
 	}
 
 	p := models.GrowVolumeCommand{
-		PvName:   pvName,
-		GrowSize: growSize,
+		PvName:  pvName,
+		NewSize: newSize,
 	}
 	b := new(bytes.Buffer)
 
@@ -81,12 +81,12 @@ func growLvOnOtherServers(pvName string, growSize string) error {
 	return nil
 }
 
-func growLvLocally(pvName string, growSize string) error {
+func growLvLocally(pvName string, newSize string) error {
 	lvName := fmt.Sprintf("lv_%v", pvName)
 
 	commands := []string{
 		// Grow lv
-		fmt.Sprintf("lvextend -L +%v /dev/%v/%v", growSize, VgName, lvName),
+		fmt.Sprintf("lvextend -L %v /dev/%v/%v", newSize, VgName, lvName),
 
 		// Grow file system
 		fmt.Sprintf("xfs_growfs /dev/%v/%v", VgName, lvName),

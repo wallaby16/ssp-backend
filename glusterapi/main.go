@@ -12,11 +12,10 @@ import (
 func init() {
 	flag.IntVar(&gluster.Port, "port", 8080, "Specify the api-port")
 	flag.IntVar(&gluster.MaxGB, "maxGB", 100, "Max GB a user can order per volume")
-	flag.IntVar(&gluster.MaxMB, "maxMB", 1024, "Max MB a user can order per volume")
 	flag.IntVar(&gluster.Replicas, "replicas", 2, "Define the replica count for new volumes")
 	flag.StringVar(&gluster.PoolName, "poolName", "", "Specify which lvm pool should be used for orders")
 	flag.StringVar(&gluster.VgName, "vgName", "", "Specify which vg is used for the pool")
-	flag.StringVar(&gluster.BasePath, "basePath", "", "Specify basepath for gluster gluster")
+	flag.StringVar(&gluster.BasePath, "basePath", "", "Specify base path for gluster gluster")
 	flag.StringVar(&gluster.Secret, "secret", "", "Specify the secret for communication on the /sec/ endpoints")
 	flag.Parse()
 
@@ -40,8 +39,8 @@ func main() {
 		"GLUSTER_API": gluster.Secret,
 	}))
 	// /sec/volume 		= Create all the necessary things on all gluster servers for a new volume
-	// /sec/volume/grow 	= Grows an existing volume on all the gluster servers
-	// /sec/lv 		= Create LV on local server
+	// /sec/volume/grow	= Grows an existing volume on all the gluster servers
+	// /sec/lv 		  	= Create LV on local server
 	// /sec/lv/grow 	= Grows an existing LV on the local server
 	sec.POST("/volume", gluster.CreateVolumeHandler)
 	sec.POST("/lv", gluster.CreateLVHandler)

@@ -9,7 +9,7 @@ import (
 )
 
 var MaxGB int
-var MaxMB int
+var MaxMB int = 1024
 var Replicas int
 var Port int
 var PoolName string

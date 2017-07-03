@@ -74,18 +74,18 @@ func fixVolumeHandler(c *gin.Context) {
 
 func growVolumeHandler(c *gin.Context) {
 	project := c.PostForm("project")
-	growSize := strings.ToUpper(c.PostForm("growsize"))
+	newSize := strings.ToUpper(c.PostForm("newsize"))
 	pvName := c.PostForm("pvname")
 	username := common.GetUserName(c)
 
-	if err := validateGrowVolume(project, growSize, pvName, username); err != nil {
+	if err := validateGrowVolume(project, newSize, pvName, username); err != nil {
 		c.HTML(http.StatusOK, growVolumeURL, gin.H{
 			"Error": err.Error(),
 		})
 		return
 	}
 
-	if err := growExistingVolume(project, growSize, pvName, username); err != nil {
+	if err := growExistingVolume(project, newSize, pvName, username); err != nil {
 		c.HTML(http.StatusOK, growVolumeURL, gin.H{
 			"Error": err.Error(),
 		})
@@ -114,13 +114,13 @@ func validateNewVolume(project string, size string, pvcName string, mode string,
 	return nil
 }
 
-func validateGrowVolume(project string, growSize string, pvName string, username string) error {
+func validateGrowVolume(project string, newSize string, pvName string, username string) error {
 	// Required fields
-	if len(project) == 0 || len(pvName) == 0 || len(growSize) == 0 {
+	if len(project) == 0 || len(pvName) == 0 || len(newSize) == 0 {
 		return errors.New("Es müssen alle Felder ausgefüllt werden")
 	}
 
-	if err := validateMaxSize(growSize); err != nil {
+	if err := validateMaxSize(newSize); err != nil {
 		return err
 	}
 
@@ -146,14 +146,12 @@ func validateFixVolume(project string, username string) error {
 }
 
 func validateMaxSize(size string) error {
-	maxMB := os.Getenv("MAX_MB")
+	maxMB := 1024
 	maxGB := os.Getenv("MAX_GB")
 
-	maxMBInt, errMB := strconv.Atoi(maxMB)
 	maxGBInt, errGB := strconv.Atoi(maxGB)
-
-	if errMB != nil || errGB != nil || maxMBInt <= 0 || maxGBInt <= 0 {
-		log.Fatal("Env variables 'MAX_MB' and 'MAX_GB' must be specified and a valid integer")
+	if errGB != nil || maxGBInt <= 0 {
+		log.Fatal("Env variable 'MAX_GB' must be specified and a valid integer")
 	}
 
 	// Size limits
@@ -163,7 +161,7 @@ func validateMaxSize(size string) error {
 			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
 		}
 
-		if sizeInt > maxMBInt {
+		if sizeInt > maxMB {
 			return errors.New("Deine Angaben sind zu gross für 'M'. Bitte gib die Grösse als Ganzzahl in 'G' an")
 		}
 	}
@@ -245,14 +243,14 @@ func createGlusterVolume(project string, size string, username string) (string, 
 	return "", fmt.Errorf("Fehlerhafte Antwort vom Gluster-API: %v", string(errMsg))
 }
 
-func growExistingVolume(project string, growSize string, pvName string, username string) error {
+func growExistingVolume(project string, newSize string, pvName string, username string) error {
 	// Renaming Rules:
 	// OpenShift cannot use _ in names. Thus the pvName will be gl-<project>-pv<number>
 	// 1. Remove gl-
 	// 2. Change -pv to _pv
 	cmd := models.GrowVolumeCommand{
-		PvName:   strings.Replace(strings.Replace(pvName, "gl-", "", 1), "-pv", "_pv", 1),
-		GrowSize: growSize,
+		PvName:  strings.Replace(strings.Replace(pvName, "gl-", "", 1), "-pv", "_pv", 1),
+		NewSize: newSize,
 	}
 
 	b := new(bytes.Buffer)
@@ -270,7 +268,7 @@ func growExistingVolume(project string, growSize string, pvName string, username
 
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
-		log.Printf("%v grew gluster volume. Project: %v, growSize: %v", username, project, growSize)
+		log.Printf("%v grew gluster volume. Project: %v, newSize: %v", username, project, newSize)
 		return nil
 	}
 
