@@ -13,7 +13,7 @@ import (
 func main() {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.LoadHTMLGlob("templates/*")
+	router.LoadHTMLGlob("templates/**/*")
 
 	// Public routes
 	authMiddleware := common.GetAuthMiddleware()
