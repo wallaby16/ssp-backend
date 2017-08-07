@@ -6,6 +6,7 @@ import (
 	"net"
 	"os/exec"
 	"strings"
+	"os"
 )
 
 var MaxGB int
@@ -23,7 +24,7 @@ type Runner interface {
 	Run(string, ...string) ([]byte, error)
 }
 
-type BashRunner struct {}
+type BashRunner struct{}
 
 func (r BashRunner) Run(command string, args ...string) ([]byte, error) {
 	out, err := exec.Command(command, args...).Output()
@@ -49,23 +50,21 @@ func getGlusterPeerServers() ([]string, error) {
 }
 
 func getLocalServersIP() (string, error) {
-	ifaces, err := net.Interfaces()
+	host, err := os.Hostname()
 	if err != nil {
-		log.Println("Error getting local servers ipv4 address", err.Error())
+		log.Println("Error getting hostname of servers", err.Error())
 		return "", errors.New(commandExecutionError)
 	}
-	for _, i := range ifaces {
-		addrs, err := i.Addrs()
-		if err != nil {
-			log.Println("Error getting local servers ipv4 address", err.Error())
-			return "", errors.New(commandExecutionError)
-		}
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		log.Println("Failed to lookup ip for name ", err.Error())
+		return "", errors.New(commandExecutionError)
+	}
 
-		for _, addr := range addrs {
-			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-				if ipnet.IP.To4() != nil {
-					return ipnet.IP.String(), nil
-				}
+	for _, addr := range ips {
+		if !addr.IsLoopback() {
+			if addr.To4() != nil {
+				return addr.String(), nil
 			}
 		}
 	}
