@@ -14,6 +14,7 @@ import EditQuota from './components/ose/EditQuota.vue';
 import NewProject from './components/ose/NewProject.vue';
 import NewTestProject from './components/ose/NewTestProject.vue';
 import UpdateBilling from './components/ose/UpdateBilling.vue';
+import NewServiceAccount from './components/ose/NewServiceAccount.vue';
 
 Vue.use(VueRouter);
 Vue.use(Buefy);
@@ -26,6 +27,7 @@ Vue.component('editquota', EditQuota);
 Vue.component('newproject', NewProject);
 Vue.component('newtestproject', NewTestProject);
 Vue.component('updatebilling', UpdateBilling);
+Vue.component('newserviceaccount', NewServiceAccount);
 
 // Routing
 const routes = [
@@ -43,6 +45,9 @@ const routes = [
   },
   {
     path: '/ose/newproject', component: NewProject
+  },
+  {
+    path: '/ose/newserviceaccount', component: NewServiceAccount
   },
   {
     path: '/ose/updatebilling', component: UpdateBilling
