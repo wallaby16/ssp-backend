@@ -10,35 +10,37 @@
             </div>
         </div>
         <br>
-            <form v-on:submit.prevent="editQuotas">
-                <b-field label="Projekt-Name">
-                    <b-input v-model.trim="projectname" required></b-input>
-                </b-field>
+        <form v-on:submit.prevent="editQuotas">
+            <b-field label="Projekt-Name">
+                <b-input v-model.trim="projectname" required></b-input>
+            </b-field>
 
-                <b-field label="Neue CPU Quotas [Cores]">
-                    <b-input type="number"
-                             v-model.number="cpu"
-                             min="1">
-                    </b-input>
-                </b-field>
+            <b-field label="Neue CPU Quotas [Cores]">
+                <b-input type="number"
+                         v-model.number="cpu"
+                         min="1">
+                </b-input>
+            </b-field>
 
-                <b-field label="Neue Memory Quotas [GB]">
-                    <b-input type="number"
-                             v-model.number="memory"
-                             min="2">
-                    </b-input>
-                </b-field>
+            <b-field label="Neue Memory Quotas [GB]">
+                <b-input type="number"
+                         v-model.number="memory"
+                         min="2">
+                </b-input>
+            </b-field>
 
-                <button type="submit" v-if="!done"
-                        v-bind:class="{'is-loading': loading}"
-                        class="button is-primary">Quotas anpassen</button>
-            </form>
+            <button type="submit" v-if="!done"
+                    v-bind:class="{'is-loading': loading}"
+                    class="button is-primary">Quotas anpassen
+            </button>
+        </form>
     </section>
 </template>
 
 <script>
-  module.exports = {
-    data: function() {
+  export default {
+    name: 'editquota',
+    data() {
       return {
         cpu: 2,
         memory: 4,
@@ -49,16 +51,9 @@
     },
     methods: {
       editQuotas: function(event) {
-        if (this.projectname && this.cpu && this.memory) {
-          this.loading = true;
+        this.loading = true;
 //          this.done = true;
-          // Todo do it
-        } else {
-          this.$toast.open({
-            type: 'is-danger',
-            message: "Bitte alle Felder ausfüllen"
-          })
-        }
+        // Todo do it
       }
     }
   }

@@ -10,36 +10,38 @@
             </div>
         </div>
         <br>
-            <form v-on:submit.prevent="newTestProject">
-                <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
+        <form v-on:submit.prevent="newTestProject">
+            <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
 
 
-                <b-field>
-                    <label class="label">Projekt-Name</label>
-                </b-field>
+            <b-field>
+                <label class="label">Projekt-Name</label>
+            </b-field>
 
-                <b-field class="has-addons">
-                    <p class="control">
-                        <span class="button is-static">{{ userId }}-</span>
-                    </p>
-                    <p class="control">
-                        <b-input v-model.trim="testprojectname"
-                                 placeholder="testprojekt"
-                                 required>
-                        </b-input>
-                    </p>
-                </b-field>
+            <b-field class="has-addons">
+                <p class="control">
+                    <span class="button is-static">{{ userId }}-</span>
+                </p>
+                <p class="control">
+                    <b-input v-model.trim="testprojectname"
+                             placeholder="testprojekt"
+                             required>
+                    </b-input>
+                </p>
+            </b-field>
 
-                <button type="submit" v-if="!done"
-                        v-bind:class="{'is-loading': loading}"
-                        class="button is-primary">Neues Test-Projekt erstellen</button>
-            </form>
+            <button type="submit" v-if="!done"
+                    v-bind:class="{'is-loading': loading}"
+                    class="button is-primary">Neues Test-Projekt erstellen
+            </button>
+        </form>
     </section>
 </template>
 
 <script>
-  module.exports = {
-    data: function() {
+  export default {
+    name: 'newtestproject',
+    data() {
       return {
         userId: 'u220374',
         testprojectname: '',
@@ -50,16 +52,9 @@
     methods: {
       newTestProject: function(event) {
         this.testprojectname = this.testprojectname.toLowerCase()
-        if (this.testprojectname) {
-          this.loading = true;
+        this.loading = true;
 //          this.done = true;
-          // Todo do it
-        } else {
-          this.$toast.open({
-            type: 'is-danger',
-            message: "Bitte alle Felder ausfüllen"
-          })
-        }
+        // Todo do it
       }
     }
   }

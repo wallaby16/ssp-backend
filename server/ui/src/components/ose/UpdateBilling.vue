@@ -3,15 +3,14 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> OpenShift Projekt anlegen</h1>
+                    <h1 class="title"><span class="fa fa-lock"></span> Kontierungsnummer anpassen</h1>
                 </div>
                 <h2 class="subtitle">
-                    Hier kannst du ein OpenShift Projekt erstellen</h2>
+                    Hier kannst du die Kontierungsnummer deines OpenShift Projekts anpassen</h2>
             </div>
         </div>
         <br>
-        <form v-on:submit.prevent="newProject">
-            <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
+        <form v-on:submit.prevent="updateBilling">
             <b-field label="Projekt-Name">
                 <b-input v-model.trim="projectname"
                          placeholder="projekt-dev"
@@ -25,15 +24,9 @@
                 </b-input>
             </b-field>
 
-            <b-field label="MEGA-ID">
-                <b-input v-model.trim="megaid"
-                         required>
-                </b-input>
-            </b-field>
-
             <button type="submit" v-if="!done"
                     v-bind:class="{'is-loading': loading}"
-                    class="button is-primary">Neues Projekt erstellen
+                    class="button is-primary">Kontierungsinformation anpassen
             </button>
         </form>
     </section>
@@ -41,10 +34,9 @@
 
 <script>
   export default {
-    name: 'newproject',
+    name: 'updatebilling',
     data() {
       return {
-        megaid: '',
         billing: '',
         projectname: '',
         loading: false,
@@ -52,8 +44,7 @@
       }
     },
     methods: {
-      newProject: function(event) {
-        this.projectname = this.projectname.toLowerCase()
+      updateBilling: function(event) {
         this.loading = true;
 //          this.done = true;
         // Todo do it
