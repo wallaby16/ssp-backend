@@ -11,6 +11,7 @@ import Nav from './components/Nav.vue'
 
 import EditQuota from './components/ose/EditQuota.vue'
 import NewProject from './components/ose/NewProject.vue'
+import NewTestProject from './components/ose/NewTestProject.vue'
 
 Vue.use(VueRouter)
 Vue.use(Buefy)
@@ -20,6 +21,7 @@ Vue.use(VueResource)
 Vue.component('navbar', Nav)
 Vue.component('editquota', EditQuota)
 Vue.component('newproject', NewProject)
+Vue.component('newtestproject', NewTestProject)
 
 // Routing
 const routes = [
@@ -27,6 +29,9 @@ const routes = [
     path: '/', component: Home },
   {
     path: '/ose/editquotas', component: EditQuota
+  },
+  {
+    path: '/ose/newtestproject', component: NewTestProject
   },
   {
     path: '/ose/newproject', component: NewProject
