@@ -36,43 +36,53 @@
             </div>
 
             <div class="navbar-end">
-                <router-link to="/login" class="navbar-item">
+                <router-link v-if="!user" to="/login" class="navbar-item">
                     <b-icon icon="person"></b-icon>
                     Login
                 </router-link>
-                <router-link to="/logout" class="navbar-item">
+                <a v-if="user" class="navbar-item" v-on:click="logout">
                     <b-icon icon="person"></b-icon>
-                    Logout
-                </router-link>
+                    Hallo {{user.name }} - Logout
+                </a>
             </div>
         </div>
     </nav>
 </template>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  export default {
+    computed: {
+      user() {
+        return this.$store.state.user;
+      }
+    },
+    methods: {
+      logout() {
+        this.$store.commit('setUser', {user: null});
+        this.$toast.open({
+          type: 'is-success',
+          message: 'Du hast dich ausgeloggt'
+        })
+      }
+    }
+  }
 
+  document.addEventListener('DOMContentLoaded', function() {
     // Get all "navbar-burger" elements
     var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-
     // Check if there are any nav burgers
     if ($navbarBurgers.length > 0) {
-
       // Add a click event on each of them
-      $navbarBurgers.forEach(function ($el) {
-        $el.addEventListener('click', function () {
-
+      $navbarBurgers.forEach(function($el) {
+        $el.addEventListener('click', function() {
           // Get the target from the "data-target" attribute
           var target = $el.dataset.target;
           var $target = document.getElementById(target);
-
           // Toggle the class on both the "navbar-burger" and the "navbar-menu"
           $el.classList.toggle('is-active');
           $target.classList.toggle('is-active');
-
         });
       });
     }
-
   });
 </script>

@@ -34,7 +34,6 @@
 
 <script>
   export default {
-    name: 'updatebilling',
     data() {
       return {
         billing: '',

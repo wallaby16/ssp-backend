@@ -1,5 +1,5 @@
 <template>
-    <section>
+    <section class="section">
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -23,3 +23,29 @@
         </form>
     </section>
 </template>
+
+<script>
+  export default {
+    data() {
+      return {
+        username: '',
+        password: '',
+        loading: false,
+        done: false
+      }
+    },
+    methods: {
+      login: function() {
+        this.loading = true;
+        this.done = true;
+
+        this.$store.commit('setUser', {user: {name: 'u220374'}});
+
+        this.$toast.open({
+          type: 'is-success',
+          message: 'Login war erfolgreich'
+        })
+      }
+    }
+  }
+</script>

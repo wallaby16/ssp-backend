@@ -39,7 +39,6 @@
 
 <script>
   export default {
-    name: 'editquota',
     data() {
       return {
         cpu: 2,

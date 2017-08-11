@@ -40,7 +40,6 @@
 
 <script>
   export default {
-    name: 'newtestproject',
     data() {
       return {
         userId: 'u220374',
