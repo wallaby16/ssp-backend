@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -24,12 +24,12 @@
                 </b-input>
             </b-field>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Kontierungsinformation anpassen
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>
@@ -38,15 +38,21 @@
       return {
         billing: '',
         projectname: '',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      updateBilling: function(event) {
+      updateBilling: function() {
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/ose/billing', {
+          project: this.projectname,
+          billing: this.billing
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }

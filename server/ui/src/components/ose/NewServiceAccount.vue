@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -19,34 +19,40 @@
             </b-field>
 
             <b-field label="Service-Account Name">
-                <b-input v-model.trim="serviceaccount"
+                <b-input v-model.trim="serviceAccount"
                          required>
                 </b-input>
             </b-field>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Service-Account erstellen
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>
   export default {
     data() {
       return {
-        serviceaccount: '',
+        serviceAccount: '',
         projectname: '',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      createServiceAccount: function(event) {
+      createServiceAccount: function() {
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/ose/serviceaccount', {
+          project: this.projectname,
+          serviceAccount: this.serviceAccount
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }
