@@ -15,6 +15,8 @@ import NewServiceAccount from './components/ose/NewServiceAccount.vue';
 import FixVolume from './components/gluster/FixVolume.vue';
 import NewVolume from './components/gluster/NewVolume.vue';
 import GrowVolume from './components/gluster/GrowVolume.vue';
+// DDC-Components
+import DDCBilling from './components/ddc/Billing.vue';
 
 Vue.component('login', Login);
 Vue.component('navbar', Nav);
@@ -34,7 +36,8 @@ export const LocalComponents = {
   NewServiceAccount,
   FixVolume,
   NewVolume,
-  GrowVolume
+  GrowVolume,
+  DDCBilling
 }
 
 

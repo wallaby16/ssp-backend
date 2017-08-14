@@ -22,15 +22,28 @@
                         <router-link to="/ose/editquotas" class="navbar-item"> Quotas anpassen</router-link>
                         <router-link to="/ose/newproject" class="navbar-item">Projekt anlegen</router-link>
                         <router-link to="/ose/newtestproject" class="navbar-item">Test-Projekt anlegen</router-link>
-                        <router-link to="/ose/updatebilling" class="navbar-item">Kontierungsnummer anzeigen/ändern</router-link>
+                        <router-link to="/ose/updatebilling" class="navbar-item">Kontierungsnummer anzeigen/ändern
+                        </router-link>
                         <router-link to="/ose/newserviceaccount" class="navbar-item">Service-Account anlegen
                         </router-link>
-                        <hr class="navbar-divider">
-                        <router-link to="/gluster/newvolume" class="navbar-item">Persistent Volume anlegen</router-link>
-                        <router-link to="/gluster/growvolume" class="navbar-item">Persistent Volume vergrössern
+                        <hr v-if="config.gluster" class="navbar-divider">
+                        <router-link v-if="config.gluster" to="/gluster/newvolume" class="navbar-item">
+                            Persistent Volume anlegen
                         </router-link>
-                        <router-link to="/gluster/fixvolume" class="navbar-item">Gluster Objekte neu anlegen lassen
+                        <router-link v-if="config.gluster" to="/gluster/growvolume" class="navbar-item">
+                            Persistent Volume vergrössern
                         </router-link>
+                        <router-link v-if="config.gluster" to="/gluster/fixvolume" class="navbar-item">
+                            Gluster Objekte neu anlegen lassen
+                        </router-link>
+                    </div>
+                </div>
+                <div v-if="user && config.ddc" class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        DDC
+                    </a>
+                    <div class="navbar-dropdown">
+                        <router-link to="/ddc/billing" class="navbar-item">DDC Kostenverrechnung</router-link>
                     </div>
                 </div>
             </div>
@@ -56,6 +69,17 @@
         return this.$store.state.user;
       }
     },
+    data: function() {
+      return {
+        config: {
+          ddc: false,
+          gluster: false
+        }
+      }
+    },
+    created: function() {
+      this.$http.get('/config').then(res => this.config = res.body)
+    },
     methods: {
       logout() {
         this.$store.commit('setUser', {user: null});
@@ -63,7 +87,7 @@
           type: 'is-success',
           message: 'Du wurdest ausgeloggt'
         });
-        this.$router.push({ path: '/login' })
+        this.$router.push({path: '/login'})
       }
     }
   }

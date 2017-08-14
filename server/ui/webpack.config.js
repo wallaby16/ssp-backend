@@ -45,6 +45,9 @@ module.exports = {
     historyApiFallback: true,
     noInfo: true,
     proxy: {
+      '/config': {
+        target: 'http://localhost:8000'
+      },
       '/login': {
         target: 'http://localhost:8000'
       },

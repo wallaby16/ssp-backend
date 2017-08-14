@@ -32,6 +32,9 @@ const routes = [
   },
   {
     path: '/gluster/growvolume', component: LocalComponents.GrowVolume
+  },
+  {
+    path: '/ddc/billing', component: LocalComponents.DDCBilling
   }
 ];
 

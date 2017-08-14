@@ -38,11 +38,11 @@ func editQuotasHandler(c *gin.Context) {
 }
 
 func validateEditQuotas(username string, project string, cpu string, memory string) error {
-	maxCPU := os.Getenv("MAX_CPU")
-	maxMemory := os.Getenv("MAX_MEMORY")
+	maxCPU := os.Getenv("MAX_QUOTA_CPU")
+	maxMemory := os.Getenv("MAX_QUOTA_MEMORY")
 
 	if len(maxCPU) == 0 || len(maxMemory) == 0 {
-		log.Fatal("Env variables 'MAX_MEMORY' and 'MAX_CPU' must be specified")
+		log.Fatal("Env variables 'MAX_QUOTA_MEMORY' and 'MAX_QUOTA_CPU' must be specified")
 	}
 
 	// Validate user input

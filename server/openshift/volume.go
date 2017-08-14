@@ -147,11 +147,11 @@ func validateFixVolume(project string, username string) error {
 
 func validateMaxSize(size string) error {
 	maxMB := 1024
-	maxGB := os.Getenv("MAX_GB")
+	maxGB := os.Getenv("MAX_VOLUME_GB")
 
 	maxGBInt, errGB := strconv.Atoi(maxGB)
 	if errGB != nil || maxGBInt <= 0 {
-		log.Fatal("Env variable 'MAX_GB' must be specified and a valid integer")
+		log.Fatal("Env variable 'MAX_VOLUME_GB' must be specified and a valid integer")
 	}
 
 	// Size limits
