@@ -6,3 +6,9 @@
         </div>
     </div>
 </template>
+
+<style>
+    .notices .toast.is-success {
+        background: #00822d
+    }
+</style>

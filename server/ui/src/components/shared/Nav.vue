@@ -26,8 +26,8 @@
                         <router-link to="/ose/newserviceaccount" class="navbar-item">Service-Account anlegen
                         </router-link>
                         <hr class="navbar-divider">
-                        <router-link to="/gluster/newvolume" class="navbar-item">Persisten Volume anlegen</router-link>
-                        <router-link to="/gluster/growvolume" class="navbar-item">Persisten Volume vergrössern
+                        <router-link to="/gluster/newvolume" class="navbar-item">Persistent Volume anlegen</router-link>
+                        <router-link to="/gluster/growvolume" class="navbar-item">Persistent Volume vergrössern
                         </router-link>
                         <router-link to="/gluster/fixvolume" class="navbar-item">Gluster Objekte neu anlegen lassen
                         </router-link>
