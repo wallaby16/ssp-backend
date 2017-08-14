@@ -15,7 +15,7 @@
         background: #00822d
     }
 
-    .message-body {
-        line-height: 45px;
-    }
+    /*.message-body {*/
+        /*line-height: 45px;*/
+    /*}*/
 </style>

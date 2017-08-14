@@ -13,7 +13,7 @@
         <form v-on:submit.prevent="newProject">
             <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
             <b-field label="Projekt-Name">
-                <b-input v-model.trim="projectname"
+                <b-input v-model.trim="project"
                          placeholder="projekt-dev"
                          required>
                 </b-input>
@@ -45,17 +45,17 @@
       return {
         megaId: '',
         billing: '',
-        projectname: '',
+        project: '',
         loading: false
       }
     },
     methods: {
       newProject: function() {
-        this.projectname = this.projectname.toLowerCase()
+        this.project = this.project.toLowerCase()
         this.loading = true;
 
         this.$http.post('/api/ose/project', {
-          project: this.projectname,
+          project: this.project,
           billing: this.billing,
           megaId: this.megaId
         }).then(() => {

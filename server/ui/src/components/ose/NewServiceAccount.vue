@@ -12,7 +12,7 @@
         <br>
         <form v-on:submit.prevent="createServiceAccount">
             <b-field label="Projekt-Name">
-                <b-input v-model.trim="projectname"
+                <b-input v-model.trim="project"
                          placeholder="projekt-dev"
                          required>
                 </b-input>
@@ -37,7 +37,7 @@
     data() {
       return {
         serviceAccount: '',
-        projectname: '',
+        project: '',
         loading: false
       }
     },
@@ -46,7 +46,7 @@
         this.loading = true;
 
         this.$http.post('/api/ose/serviceaccount', {
-          project: this.projectname,
+          project: this.project,
           serviceAccount: this.serviceAccount
         }).then(() => {
           this.loading = false;

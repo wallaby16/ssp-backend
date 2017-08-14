@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -16,14 +16,14 @@
 
         <form v-on:submit.prevent="growGlusterVolume">
             <b-field label="Projekt-Name">
-                <b-input v-model.trim="projectname"
+                <b-input v-model.trim="project"
                          placeholder="projekt-dev"
                          required>
                 </b-input>
             </b-field>
 
             <b-field label="Neue Grösse">
-                <b-input v-model.trim="newsize"
+                <b-input v-model.trim="newSize"
                          placeholder="100M"
                          required>
                 </b-input>
@@ -34,7 +34,7 @@
 
             <p><em></em></p>
             <b-field label="Name des Persistent Volumes">
-                <b-input v-model.trim="pvname"
+                <b-input v-model.trim="pvName"
                          required>
                 </b-input>
             </b-field>
@@ -42,30 +42,37 @@
                 Nicht der Name des PVC, sondern das was in OpenShift unter "Storage" > Spalte "Status" > <strong>fett</strong> geschrieben ist
             </b-message>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Persistent Volume vergrössern
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>
   export default {
     data() {
       return {
-        projectname: '',
-        pvname: '',
-        newsize: '',
-        loading: false,
-        done: false
+        project: '',
+        pvName: '',
+        newSize: '',
+        loading: false
       }
     },
     methods: {
-      growGlusterVolume: function(event) {
+      growGlusterVolume: function() {
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/gluster/volume/grow', {
+          project: this.project,
+          newSize: this.newSize,
+          pvName: this.pvName
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }

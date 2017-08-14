@@ -215,7 +215,8 @@ func createGlusterVolume(project string, size string, username string) (string, 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		log.Println("Error calling gluster-api", err.Error())
+		return "", errors.New(genericAPIError)
 	}
 
 	defer resp.Body.Close()
@@ -258,7 +259,8 @@ func growExistingVolume(project string, newSize string, pvName string, username 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		log.Println("Error calling gluster-api", err.Error())
+		return errors.New(genericAPIError)
 	}
 
 	defer resp.Body.Close()

@@ -1,8 +1,7 @@
 <template>
     <b-message v-if="notification && notification.type"
                :title="notification.type === 'success' ? 'Erfolgreich' : 'Fehlgeschlagen'"
-               :type="'is-' + notification.type"
-               has-icon>
+               :type="'is-' + notification.type">
         {{ notification.message }}
     </b-message>
 </template>

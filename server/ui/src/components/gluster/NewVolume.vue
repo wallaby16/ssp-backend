@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -12,7 +12,7 @@
         <br>
         <form v-on:submit.prevent="createGlusterVolume">
             <b-field label="Projekt-Name">
-                <b-input v-model.trim="projectname"
+                <b-input v-model.trim="project"
                          placeholder="projekt-dev"
                          required>
                 </b-input>
@@ -30,7 +30,7 @@
             </b-message>
 
             <b-field label="Name des Persistent Volume Claims">
-                <b-input v-model.trim="pvcname"
+                <b-input v-model.trim="pvcName"
                          required>
                 </b-input>
             </b-field>
@@ -54,31 +54,39 @@
             </b-message>
             <br>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Persistent Volume erstellen
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>
   export default {
     data() {
       return {
-        projectname: '',
-        pvcname: '',
+        project: '',
+        pvcName: '',
         size: '',
         mode: 'ReadWriteOnce',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      createGlusterVolume: function(event) {
+      createGlusterVolume: function() {
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/gluster/volume', {
+          project: this.project,
+          size: this.size,
+          pvcName: this.pvcName,
+          mode: this.mode
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }

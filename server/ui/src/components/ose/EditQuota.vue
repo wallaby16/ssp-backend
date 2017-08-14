@@ -12,7 +12,7 @@
         <br>
         <form v-on:submit.prevent="editQuotas">
             <b-field label="Projekt-Name">
-                <b-input v-model.trim="projectname" required></b-input>
+                <b-input v-model.trim="project" required></b-input>
             </b-field>
 
             <b-field label="Neue CPU Quotas [Cores]">
@@ -43,7 +43,7 @@
       return {
         cpu: 2,
         memory: 4,
-        projectname: '',
+        project: '',
         loading: false
       }
     },
@@ -52,7 +52,7 @@
         this.loading = true;
 
         this.$http.post('/api/ose/quotas', {
-          project: this.projectname,
+          project: this.project,
           cpu: '' + this.cpu,
           memory: '' + this.memory
         }).then(() => {
