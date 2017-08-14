@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
@@ -19,14 +20,17 @@ func editQuotasHandler(c *gin.Context) {
 	var data common.EditQuotasCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateEditQuotas(username, data.Project, data.CPU, data.Memory); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := updateQuotas(username, data.Project, data.CPU, data.Memory); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{ Message: "Die neuen Quotas wurden gespeichert" })
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Die neuen Quotas wurden gespeichert: Projekt %v, CPU: %v, Memory: %v",
+					data.Project, data.CPU, data.Memory),
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})

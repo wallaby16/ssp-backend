@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 )
@@ -17,14 +18,16 @@ func newServiceAccountHandler(c *gin.Context) {
 	var data common.NewServiceAccountCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateNewServiceAccount(username, data.Project, data.ServiceAccount); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := createNewServiceAccount(username, data.Project, data.ServiceAccount); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{Message: "Der Service Account wurde angelegt" })
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Der Service Account %v wurde angelegt", data.ServiceAccount),
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})

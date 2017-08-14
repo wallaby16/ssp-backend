@@ -14,8 +14,4 @@
     .notices .toast.is-success {
         background: #00822d
     }
-
-    /*.message-body {*/
-        /*line-height: 45px;*/
-    /*}*/
 </style>

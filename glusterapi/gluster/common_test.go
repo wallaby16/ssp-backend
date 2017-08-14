@@ -78,5 +78,5 @@ func TestGetLocalServersIP(t *testing.T) {
 	// Make sure response is a valid ip
 	ip := net.ParseIP(localIP)
 
-	assert(t, ip.To4() != nil, "Expected to get local ip, but got " + localIP)
+	assert(t, ip.To4() != nil, "Expected to get local ip, but got "+localIP)
 }

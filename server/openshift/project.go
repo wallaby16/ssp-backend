@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"fmt"
+
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
@@ -19,14 +21,16 @@ func newProjectHandler(c *gin.Context) {
 	var data common.NewProjectCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateNewProject(data.Project, data.Billing, false); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := createNewProject(data.Project, username, data.Billing, data.MegaId); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Projekt wurde erstellt" })
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Das Projekt %v wurde erstellt", data.Project),
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
@@ -43,14 +47,16 @@ func newTestProjectHandler(c *gin.Context) {
 		data.Project = username + "-" + data.Project
 
 		if err := validateNewProject(data.Project, billing, true); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := createNewProject(data.Project, username, billing, ""); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Test-Projekt wurde erstellt" })
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Das Test-Projekt %v wurde erstellt", data.Project),
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
@@ -63,14 +69,16 @@ func updateBillingHandler(c *gin.Context) {
 	var data common.EditBillingDataCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateBillingInformation(data.Project, data.Billing, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := createOrUpdateMetadata(data.Project, data.Billing, "", username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{Message: "Die neuen Daten wurden gespeichert" })
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Die Verrechnungsdaten wurden gespeichert: %v", data.Billing),
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})

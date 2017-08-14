@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	wrongSizeError     = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 100M). Maximale erlaubte Grössen sind: M: %v, G: %v"
+	wrongSizeError = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 100M). Maximale erlaubte Grössen sind: M: %v, G: %v"
 )
 
 func newVolumeHandler(c *gin.Context) {
@@ -31,12 +31,12 @@ func newVolumeHandler(c *gin.Context) {
 	var data common.NewVolumeCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateNewVolume(data.Project, data.Size, data.PvcName, data.Mode, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := createNewVolume(data.Project, username, data.Size, data.PvcName, data.Mode); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
 				Message: "Das Volume wurde erstellt. Deinem Projekt wurde das PVC, und der Gluster Service & Endpunkte hinzugefügt.",
@@ -53,12 +53,12 @@ func fixVolumeHandler(c *gin.Context) {
 	var data common.FixVolumeCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateFixVolume(data.Project, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := recreateGlusterObjects(data.Project, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
 				Message: "Die Gluster-Objekte wurden in deinem Projekt erzeugt.",
@@ -76,14 +76,14 @@ func growVolumeHandler(c *gin.Context) {
 	var data common.GrowVolumeCommand
 	if c.BindJSON(&data) == nil {
 		if err := validateGrowVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		if err := growExistingVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Volume wurde vergrössert." })
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Volume wurde vergrössert."})
 		}
 
 	} else {
