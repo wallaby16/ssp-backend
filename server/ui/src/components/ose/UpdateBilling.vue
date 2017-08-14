@@ -3,22 +3,28 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> Kontierungsnummer anpassen</h1>
+                    <h1 class="title"><span class="fa fa-lock"></span> Kontierungsnummer anzeigen/anpassen</h1>
                 </div>
                 <h2 class="subtitle">
-                    Hier kannst du die Kontierungsnummer deines OpenShift Projekts anpassen</h2>
+                    Hier kannst du die Kontierungsnummer deines OpenShift Projekts anzeigen/anpassen</h2>
             </div>
         </div>
         <br>
         <form v-on:submit.prevent="updateBilling">
-            <b-field label="Projekt-Name">
+            <label class="label">Projekt-Name</label>
+            <b-field grouped>
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
+                         expanded
                          required>
                 </b-input>
+                <p class="control">
+                    <span class="button is-info"
+                            v-on:click="getExistingBillingData">Aktuelle Daten anzeigen</span>
+                </p>
             </b-field>
 
-            <b-field label="Kontierungsnummer">
+            <b-field label="Neue Kontierungsnummer">
                 <b-input v-model.trim="billing"
                          required>
                 </b-input>
@@ -49,6 +55,13 @@
           project: this.project,
           billing: this.billing
         }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
+      },
+      getExistingBillingData: function() {
+        this.$http.get('/api/ose/billing/' + this.project).then(() => {
           this.loading = false;
         }, () => {
           this.loading = false;

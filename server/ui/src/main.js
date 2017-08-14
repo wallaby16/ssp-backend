@@ -23,8 +23,20 @@ Vue.http.interceptors.push(function(request, next) {
     if (res.body.message) {
       this.$store.commit('setNotification', {
         notification: {
-          type:  res.status === 200 ? 'success' : 'danger',
+          type: res.status === 200 ? 'success' : 'danger',
           message: res.body.message
+        }
+      });
+    }
+
+    if (res.url !== '/login' && res.status === 401) {
+      this.$store.commit('setUser', {
+        user: null
+      });
+      this.$store.commit('setNotification', {
+        notification: {
+          type: 'danger',
+          message: 'Dein Token ist abgelaufen. Bitte logge dich neu ein'
         }
       });
     }

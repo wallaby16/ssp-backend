@@ -22,7 +22,7 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	return &jwt.GinJWTMiddleware{
 		Realm:         "CLOUD_SSP",
 		Key:           []byte(key),
-		Timeout:       time.Minute,
+		Timeout:       time.Hour,
 		MaxRefresh:    time.Hour,
 		Authenticator: ldapAuthenticator,
 		Authorizator: func(userId string, c *gin.Context) bool {

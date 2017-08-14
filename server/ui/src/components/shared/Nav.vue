@@ -22,7 +22,7 @@
                         <router-link to="/ose/editquotas" class="navbar-item">Quotas anpassen</router-link>
                         <router-link to="/ose/newproject" class="navbar-item">Projekt anlegen</router-link>
                         <router-link to="/ose/newtestproject" class="navbar-item">Test-Projekt anlegen</router-link>
-                        <router-link to="/ose/updatebilling" class="navbar-item">Kontierungsnummer ändern</router-link>
+                        <router-link to="/ose/updatebilling" class="navbar-item">Kontierungsnummer anzeigen/ändern</router-link>
                         <router-link to="/ose/newserviceaccount" class="navbar-item">Service-Account anlegen
                         </router-link>
                         <hr class="navbar-divider">

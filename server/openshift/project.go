@@ -63,6 +63,24 @@ func newTestProjectHandler(c *gin.Context) {
 	}
 }
 
+func getBillingHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	project := c.Param("project")
+
+	if err := validateAdminAccess(username, project); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		return
+	}
+
+	if billingData, err := getProjectBillingInformation(project); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+	} else {
+		c.JSON(http.StatusOK, common.ApiResponse{
+			Message: fmt.Sprintf("Aktuelle Verrechnungsdaten für Projekt %v: %v", project, billingData),
+		})
+	}
+}
+
 func updateBillingHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 
@@ -92,6 +110,19 @@ func validateNewProject(project string, billing string, isTestproject bool) erro
 
 	if !isTestproject && len(billing) == 0 {
 		return errors.New("Kontierungsnummer muss angegeben werden")
+	}
+
+	return nil
+}
+
+func validateAdminAccess(username string, project string) error {
+	if len(project) == 0 {
+		return errors.New("Projektname muss angegeben werden")
+	}
+
+	// Validate permissions
+	if err := checkAdminPermissions(username, project); err != nil {
+		return err
 	}
 
 	return nil
@@ -189,6 +220,30 @@ func changeProjectPermission(project string, username string) error {
 	errMsg, _ := ioutil.ReadAll(resp.Body)
 	log.Println("Error updating project permissions:", err, resp.StatusCode, string(errMsg))
 	return errors.New(genericAPIError)
+}
+
+func getProjectBillingInformation(project string) (string, error) {
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project, nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error from server: ", err.Error())
+		return "", errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error decoding json:", err, resp.StatusCode)
+		return "", errors.New(genericAPIError)
+	}
+
+	billing := json.Path("metadata.annotations").S("openshift.io/kontierung-element").Data()
+	if (billing != nil) {
+		return billing.(string), nil
+	} else {
+		return "Keine Daten hinterlegt", nil
+	}
 }
 
 func createOrUpdateMetadata(project string, billing string, megaid string, username string) error {
