@@ -10,4 +10,4 @@ RUN tar xfvz self-service-portal.tar.gz
 
 EXPOSE 8080
 
-CMD ["/usr/ssp/server"]
+CMD ["/usr/ssp/dist/server"]

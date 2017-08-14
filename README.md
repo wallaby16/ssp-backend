@@ -1,4 +1,6 @@
 # General idea
+Build Status: [![Build Status](https://travis-ci.org/oscp/cloud-selfservice-portal.svg?branch=master)](https://travis-ci.org/oscp/cloud-selfservice-portal)
+
 We at [@SchweizerischeBundesbahnen](https://github.com/SchweizerischeBundesbahnen) have a lot of projects who need changes on their projects all the time. As those settings are (and also should ;-)) limited to the administrator roles, we had to do a lot of manual changes like:
 - Creating new projects with certain attributes
 - Updating project quotas
