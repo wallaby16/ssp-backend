@@ -43,7 +43,15 @@ module.exports = {
   },
   devServer: {
     historyApiFallback: true,
-    noInfo: true
+    noInfo: true,
+    proxy: {
+      '/login': {
+        target: 'http://localhost:8000'
+      },
+      '/api': {
+        target: 'http://localhost:8000'
+      }
+    }
   },
   performance: {
     hints: false

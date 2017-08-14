@@ -17,6 +17,19 @@ Vue.use(VueRouter);
 Vue.use(Buefy);
 Vue.use(VueResource);
 
+// Handle http errors globally
+Vue.http.interceptors.push(function(request, next) {
+  next(function(res) {
+    if (res.status !== 200 && res.body.message) {
+      this.$toast.open({
+        type: 'is-danger',
+        message: res.body.message,
+        duration: 5000
+      });
+    }
+  });
+});
+
 new Vue({
   router,
   store,
