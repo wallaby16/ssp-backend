@@ -31,13 +31,18 @@ script:
 - npm run build
 - cp ./dist/build.js ../../dist/static/dist
 - cp index.html ../../dist/static
+- pwd
+- ls
 - cd ../..
+- pwd
+- ls
+- ls dist/
 
 # Pack the gluster api
-- tar -zcvf gluster-api.tar.gz glusterapi glusterapi.service
+- tar -zcvf gluster-api.tar.gz dist/glusterapi dist/glusterapi.service
 
 # Pack the self service portal
-- tar -zxvf self-service-portal.tar.gz server dist
+- tar -zxvf self-service-portal.tar.gz dist/server dist/static/dist
 
 deploy:
   provider: releases
