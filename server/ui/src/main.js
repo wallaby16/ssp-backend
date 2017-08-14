@@ -17,17 +17,26 @@ Vue.use(VueRouter);
 Vue.use(Buefy);
 Vue.use(VueResource);
 
-// Handle http errors globally
+// Http interceptors: Global response handler
 Vue.http.interceptors.push(function(request, next) {
   next(function(res) {
-    if (res.status !== 200 && res.body.message) {
+    if (res.body.message) {
       this.$toast.open({
-        type: 'is-danger',
+        type: res.status === 200 ? 'is-success' : 'is-danger',
         message: res.body.message,
         duration: 5000
       });
+
     }
   });
+});
+
+// Http interceptors: Add Auth-Header if token present
+Vue.http.interceptors.push(function(request, next) {
+  if (store.state.user) {
+    request.headers.set('Authorization', `Bearer ${store.state.user.token}`);
+  }
+  next();
 });
 
 new Vue({

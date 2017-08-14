@@ -23,16 +23,16 @@ const (
 // RegisterRoutes registers the routes for OpenShift
 func RegisterRoutes(r *gin.RouterGroup) {
 	// OpenShift
-	r.POST("/ose/editquotas", editQuotasHandler)
-	r.POST("/ose/newproject", newProjectHandler)
-	r.POST("/ose/newtestproject", newTestProjectHandler)
-	r.POST("/ose/updatebilling", updateBillingHandler)
-	r.POST("/ose/newserviceaccount", newServiceAccountHandler)
+	r.POST("/ose/project", newProjectHandler)
+	r.POST("/ose/testproject", newTestProjectHandler)
+	r.POST("/ose/serviceaccount", newServiceAccountHandler)
+	r.POST("/ose/billing", updateBillingHandler)
+	r.POST("/ose/quotas", editQuotasHandler)
 
 	// GlusterFS
 	r.POST("/gluster/volume", newVolumeHandler)
-	r.POST("/gluster/fixvolume", fixVolumeHandler)
-	r.POST("/gluster/growvolume", growVolumeHandler)
+	r.POST("/gluster/volume/fix", fixVolumeHandler)
+	r.POST("/gluster/volume/grow", growVolumeHandler)
 }
 
 func checkAdminPermissions(username string, project string) error {

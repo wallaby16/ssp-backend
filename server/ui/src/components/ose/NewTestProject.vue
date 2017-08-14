@@ -20,7 +20,7 @@
 
             <b-field class="has-addons">
                 <p class="control">
-                    <span class="button is-static">{{ userId }}-</span>
+                    <span class="button is-static">{{ username }}-</span>
                 </p>
                 <p class="control">
                     <b-input v-model.trim="testprojectname"
@@ -30,7 +30,7 @@
                 </p>
             </b-field>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Neues Test-Projekt erstellen
             </button>
@@ -40,20 +40,29 @@
 
 <script>
   export default {
+    computed: {
+      username() {
+        return this.$store.state.user.name;
+      }
+    },
     data() {
       return {
-        userId: 'u220374',
         testprojectname: '',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      newTestProject: function(event) {
+      newTestProject: function() {
         this.testprojectname = this.testprojectname.toLowerCase()
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/ose/testproject', {
+          project: this.testprojectname
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }

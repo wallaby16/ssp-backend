@@ -29,7 +29,7 @@
                 </b-input>
             </b-field>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Quotas anpassen
             </button>
@@ -44,15 +44,22 @@
         cpu: 2,
         memory: 4,
         projectname: '',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      editQuotas: function(event) {
+      editQuotas: function() {
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/ose/quotas', {
+          project: this.projectname,
+          cpu: '' + this.cpu,
+          memory: '' + this.memory
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }
