@@ -3,22 +3,26 @@ package main
 import (
 	"log"
 
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"github.com/oscp/cloud-selfservice-portal/server/openshift"
 	"github.com/oscp/cloud-selfservice-portal/server/ddc"
+	"github.com/oscp/cloud-selfservice-portal/server/openshift"
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 
 	// Public routes
 	authMiddleware := common.GetAuthMiddleware()
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, "/s/")
+	})
+	router.StaticFS("/s", http.Dir("static"))
 	router.POST("/login", authMiddleware.LoginHandler)
-
-	// Feature toggle
 	router.GET("/config", common.ConfigHandler)
 
 	// Protected routes
