@@ -45,6 +45,8 @@
           type: 'is-success',
           message: 'Login war erfolgreich'
         })
+
+        this.$router.push({path: '/'})
       }
     }
   }

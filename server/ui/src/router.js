@@ -1,12 +1,13 @@
-import {LocalComponents} from './components';
+import {GlobalComponents,LocalComponents} from './components';
 import VueRouter from 'vue-router';
+import store from './store/index';
 
 const routes = [
   {
     path: '/', component: LocalComponents.Home
   },
   {
-    path: '/login', component: LocalComponents.Login
+    path: '/login', component: GlobalComponents.Login
   },
   {
     path: '/ose/editquotas', component: LocalComponents.EditQuota
@@ -34,5 +35,17 @@ const routes = [
   }
 ];
 
-export default new VueRouter({routes});
+// Global auth-guard
+const router = new VueRouter({routes});
+
+router.beforeEach((to, from, next) => {
+  if (to.path !== '/login' && !store.state.user) {
+    console.error('Not yet logged in, navigating to login')
+    next({path: '/login'});
+  } else {
+    next();
+  }
+});
+
+export default router;
 

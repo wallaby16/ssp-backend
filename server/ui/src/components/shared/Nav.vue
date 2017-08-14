@@ -14,7 +14,7 @@
 
         <div id="navMain" class="navbar-menu">
             <div class="navbar-start">
-                <div class="navbar-item has-dropdown is-hoverable">
+                <div v-if="user" class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">
                         OpenShift
                     </a>
@@ -62,7 +62,8 @@
         this.$toast.open({
           type: 'is-success',
           message: 'Du hast dich ausgeloggt'
-        })
+        });
+        this.$router.push({ path: '/login' })
       }
     }
   }
