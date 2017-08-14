@@ -31,10 +31,9 @@ script:
 - npm run build
 - cp ./dist/build.js ../../dist/static/dist
 - cp index.html ../../dist/static
-- pwd
-- ls
+- pwd # /home/travis/gopath/src/github.com/oscp/cloud-selfservice-portal/server/ui
 - cd ../..
-- pwd
+- pwd # /home/travis/gopath/src/github.com/oscp/cloud-selfservice-portal
 - ls
 - ls dist/
 
@@ -42,7 +41,7 @@ script:
 - tar -zcvf gluster-api.tar.gz dist/glusterapi dist/glusterapi.service
 
 # Pack the self service portal
-- tar -zxvf self-service-portal.tar.gz dist/server dist/static/dist
+- tar -zcvf self-service-portal.tar.gz dist/server dist/static/dist
 
 deploy:
   provider: releases
