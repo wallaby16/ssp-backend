@@ -19,80 +19,76 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal/server/openshift"
 )
 
 const (
-	wrongSizeError = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 100M). Maximale erlaubte Grössen sind: M: %v, G: %v"
+	wrongSizeError     = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 100M). Maximale erlaubte Grössen sind: M: %v, G: %v"
 )
 
 func newVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	size := strings.ToUpper(c.PostForm("size"))
-	pvcName := c.PostForm("pvcname")
-	mode := c.PostForm("mode")
 	username := common.GetUserName(c)
 
-	if err := validateNewVolume(project, size, pvcName, mode, username); err != nil {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.NewVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewVolume(data.Project, data.Size, data.PvcName, data.Mode, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := createNewVolume(project, username, size, pvcName, mode); err != nil {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createNewVolume(data.Project, username, data.Size, data.PvcName, data.Mode); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Das Volume wurde erstellt. Deinem Projekt wurde das PVC, und der Gluster Service & Endpunkte hinzugefügt.",
+			})
+		}
 	} else {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Success": "Das Volume wurde erstellt. Deinem Projekt wurde das PVC, und der Gluster Service & Endpunkte hinzugefügt.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func fixVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
 	username := common.GetUserName(c)
 
-	if err := validateFixVolume(project, username); err != nil {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.FixVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateFixVolume(data.Project, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := recreateGlusterObjects(project, username); err != nil {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := recreateGlusterObjects(data.Project, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Die Gluster-Objekte wurden in deinem Projekt erzeugt.",
+			})
+		}
+
 	} else {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Success": "Die Gluster-Objekte wurden in deinem Projekt erzeugt.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func growVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	newSize := strings.ToUpper(c.PostForm("newsize"))
-	pvName := c.PostForm("pvname")
 	username := common.GetUserName(c)
 
-	if err := validateGrowVolume(project, newSize, pvName, username); err != nil {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.GrowVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateGrowVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := growExistingVolume(project, newSize, pvName, username); err != nil {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := growExistingVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Volume wurde vergrössert." })
+		}
+
 	} else {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Success": "Das Volume wurde vergrössert.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 

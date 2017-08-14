@@ -16,75 +16,23 @@ import (
 )
 
 const (
-	editQuotasURL        = "editquotas.html"
-	newProjectURL        = "newproject.html"
-	newTestProjectURL    = "newtestproject.html"
-	updateBillingURL     = "updatebilling.html"
-	newServiceAccountURL = "newserviceaccount.html"
-	newVolumeURL         = "newvolume.html"
-	fixVolumeURL         = "fixvolume.html"
-	growVolumeURL        = "growvolume.html"
-	chargeBackURL        = "chargeback.html"
-	genericAPIError      = "Fehler beim Aufruf der OpenShift-API"
+	genericAPIError    = "Fehler beim Aufruf der OpenShift-API. Bitte erstelle ein Ticket."
+	wrongAPIUsageError = "Invalid api call - parameters did not match to method definition"
 )
 
 // RegisterRoutes registers the routes for OpenShift
 func RegisterRoutes(r *gin.RouterGroup) {
-	// Quotas
-	r.GET("/openshift/editquotas", func(c *gin.Context) {
-		c.HTML(http.StatusOK, editQuotasURL, gin.H{})
-	})
-	r.POST("/openshift/editquotas", editQuotasHandler)
+	// OpenShift
+	r.POST("/ose/editquotas", editQuotasHandler)
+	r.POST("/ose/newproject", newProjectHandler)
+	r.POST("/ose/newtestproject", newTestProjectHandler)
+	r.POST("/ose/updatebilling", updateBillingHandler)
+	r.POST("/ose/newserviceaccount", newServiceAccountHandler)
 
-	// NewProject
-	r.GET("/openshift/newproject", func(c *gin.Context) {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{})
-	})
-	r.POST("/openshift/newproject", newProjectHandler)
-
-	// NewTestProject
-	r.GET("/openshift/newtestproject", func(c *gin.Context) {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"User": common.GetUserName(c),
-		})
-	})
-	r.POST("/openshift/newtestproject", newTestProjectHandler)
-
-	// Update billing
-	r.GET("/openshift/updatebilling", func(c *gin.Context) {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{})
-	})
-	r.POST("/openshift/updatebilling", updateBillingHandler)
-
-	// NewServiceAccount
-	r.GET("/openshift/newserviceaccount", func(c *gin.Context) {
-		c.HTML(http.StatusOK, newServiceAccountURL, gin.H{})
-	})
-	r.POST("/openshift/newserviceaccount", newServiceAccountHandler)
-
-	// NewVolume
-	r.GET("/openshift/newvolume", func(c *gin.Context) {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{})
-	})
-	r.POST("/openshift/newvolume", newVolumeHandler)
-
-	// FixVolume
-	r.GET("/openshift/fixvolume", func(c *gin.Context) {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{})
-	})
-	r.POST("/openshift/fixvolume", fixVolumeHandler)
-
-	// growVolume
-	r.GET("/openshift/growvolume", func(c *gin.Context) {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{})
-	})
-	r.POST("/openshift/growvolume", growVolumeHandler)
-
-	// Chargeback
-	r.GET("/newrelic/chargeback", func(c *gin.Context) {
-		c.HTML(http.StatusOK, chargeBackURL, gin.H{})
-	})
-	r.POST("/newrelic/chargeback", chargeBackHandler)
+	// GlusterFS
+	r.POST("/gluster/volume", newVolumeHandler)
+	r.POST("/gluster/fixvolume", fixVolumeHandler)
+	r.POST("/gluster/growvolume", growVolumeHandler)
 }
 
 func checkAdminPermissions(username string, project string) error {
@@ -186,21 +134,21 @@ func getOseHTTPClient(method string, endURL string, body io.Reader) (*http.Clien
 }
 
 func getGlusterHTTPClient(url string, body io.Reader) (*http.Client, *http.Request) {
-	glusterURL := os.Getenv("GLUSTER_API_URL")
-	glusterSecret := os.Getenv("GLUSTER_SECRET")
+	apiUrl := os.Getenv("GLUSTER_API_URL")
+	apiSecret := os.Getenv("GLUSTER_SECRET")
 
-	if len(glusterURL) == 0 || len(glusterSecret) == 0 {
+	if len(apiUrl) == 0 || len(apiSecret) == 0 {
 		log.Fatal("Env variables 'GLUSTER_API_URL' and 'GLUSTER_SECRET' must be specified")
 	}
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%v/%v", glusterURL, url), body)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%v/%v", apiUrl, url), body)
 
 	if common.DebugMode() {
 		log.Printf("Calling %v", req.URL.String())
 	}
 
-	req.SetBasicAuth("GLUSTER_API", glusterSecret)
+	req.SetBasicAuth("GLUSTER_API", apiSecret)
 
 	return client, req
 }

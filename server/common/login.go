@@ -32,16 +32,12 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 			return true
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.Abort()
-			c.SetCookie("token", "", -1, "", "", false, true)
-			if message == "Cookie token empty" {
-				message = ""
-			}
-			c.HTML(http.StatusOK, "login.html", gin.H{
-				"Error": message,
+			c.JSON(code, gin.H{
+				"code":    code,
+				"message": message,
 			})
 		},
-		TokenLookup: "cookie:token",
+		TokenLookup: "header:Authorization",
 		TimeFunc:    time.Now,
 	}
 }
@@ -76,58 +72,58 @@ func ldapAuthenticator(userID string, password string, c *gin.Context) (string, 
 	return userID, ok
 }
 
-// CookieLoginHandler handles a cookie based JWT token
-func CookieLoginHandler(mw *jwt.GinJWTMiddleware, c *gin.Context) {
-	// Initial middleware default setting.
-	mw.MiddlewareInit()
-
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-
-	if len(username) == 0 || len(password) == 0 {
-		mw.Unauthorized(c, http.StatusBadRequest, "Benutzername / Passwort nicht angegeben")
-		return
-	}
-
-	if mw.Authenticator == nil {
-		mw.Unauthorized(c, http.StatusInternalServerError, "Internes Problem")
-		return
-	}
-
-	userID, ok := mw.Authenticator(username, password, c)
-
-	if !ok {
-		mw.Unauthorized(c, http.StatusUnauthorized, "Benutzername / Passwort nicht korrekt")
-		return
-	}
-
-	// Create the token
-	token := jwt3.New(jwt3.GetSigningMethod(mw.SigningAlgorithm))
-	claims := token.Claims.(jwt3.MapClaims)
-
-	if mw.PayloadFunc != nil {
-		for key, value := range mw.PayloadFunc(username) {
-			claims[key] = value
-		}
-	}
-
-	if userID == "" {
-		userID = username
-	}
-
-	expire := mw.TimeFunc().Add(mw.Timeout)
-	claims["id"] = userID
-	claims["exp"] = expire.Unix()
-	claims["orig_iat"] = mw.TimeFunc().Unix()
-
-	tokenString, err := token.SignedString(mw.Key)
-
-	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, "Token konnte nicht erstellt werden")
-		return
-	}
-
-	c.SetCookie("token", tokenString, 0, "", "", false, true)
-
-	c.Redirect(http.StatusFound, "/auth/")
-}
+//// CookieLoginHandler handles a cookie based JWT token
+//func CookieLoginHandler(mw *jwt.GinJWTMiddleware, c *gin.Context) {
+//	// Initial middleware default setting.
+//	mw.MiddlewareInit()
+//
+//	username := c.PostForm("username")
+//	password := c.PostForm("password")
+//
+//	if len(username) == 0 || len(password) == 0 {
+//		mw.Unauthorized(c, http.StatusBadRequest, "Benutzername / Passwort nicht angegeben")
+//		return
+//	}
+//
+//	if mw.Authenticator == nil {
+//		mw.Unauthorized(c, http.StatusInternalServerError, "Internes Problem")
+//		return
+//	}
+//
+//	userID, ok := mw.Authenticator(username, password, c)
+//
+//	if !ok {
+//		mw.Unauthorized(c, http.StatusUnauthorized, "Benutzername / Passwort nicht korrekt")
+//		return
+//	}
+//
+//	// Create the token
+//	token := jwt3.New(jwt3.GetSigningMethod(mw.SigningAlgorithm))
+//	claims := token.Claims.(jwt3.MapClaims)
+//
+//	if mw.PayloadFunc != nil {
+//		for key, value := range mw.PayloadFunc(username) {
+//			claims[key] = value
+//		}
+//	}
+//
+//	if userID == "" {
+//		userID = username
+//	}
+//
+//	expire := mw.TimeFunc().Add(mw.Timeout)
+//	claims["id"] = userID
+//	claims["exp"] = expire.Unix()
+//	claims["orig_iat"] = mw.TimeFunc().Unix()
+//
+//	tokenString, err := token.SignedString(mw.Key)
+//
+//	if err != nil {
+//		mw.Unauthorized(c, http.StatusUnauthorized, "Token konnte nicht erstellt werden")
+//		return
+//	}
+//
+//	c.SetCookie("token", tokenString, 0, "", "", false, true)
+//
+//	c.Redirect(http.StatusFound, "/auth/")
+//}
