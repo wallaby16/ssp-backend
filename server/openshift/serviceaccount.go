@@ -12,26 +12,22 @@ import (
 )
 
 func newServiceAccountHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	serviceaccount := c.PostForm("serviceaccount")
 	username := common.GetUserName(c)
 
-	if err := validateNewServiceAccount(username, project, serviceaccount); err != nil {
-		c.HTML(http.StatusOK, newServiceAccountURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.NewServiceAccountCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewServiceAccount(username, data.Project, data.ServiceAccount); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := createNewServiceAccount(username, project, serviceaccount); err != nil {
-		c.HTML(http.StatusOK, newServiceAccountURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createNewServiceAccount(username, data.Project, data.ServiceAccount); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Der Service Account wurde angelegt" })
+		}
 	} else {
-
-		c.HTML(http.StatusOK, newServiceAccountURL, gin.H{
-			"Success": "Der Service Account wurde angelegt",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 

@@ -19,7 +19,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"github.com/oscp/cloud-selfservice-portal/server/openshift"
 )
 
 const (

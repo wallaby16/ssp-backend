@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"github.com/oscp/cloud-selfservice-portal/server/gluster"
 	"github.com/oscp/cloud-selfservice-portal/server/openshift"
 )
 
@@ -23,9 +22,6 @@ func main() {
 	{
 		// Openshift routes
 		openshift.RegisterRoutes(auth)
-
-		// Gluster routes
-		gluster.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")

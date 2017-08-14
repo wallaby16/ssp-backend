@@ -25,7 +25,7 @@ func ValidateIntInput(maxValue string, input string) error {
 	}
 
 	if inputInt > maxInt {
-		return fmt.Errorf("Du kannst maximal %v eintragen", maxValue)
+		return fmt.Errorf("Der Maximalwert für diese Eingabe ist: %v", maxValue)
 	}
 
 	return nil
@@ -43,3 +43,5 @@ func DebugMode() bool {
 
 	return mode != "release"
 }
+
+

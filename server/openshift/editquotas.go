@@ -14,28 +14,23 @@ import (
 )
 
 func editQuotasHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	cpu := c.PostForm("cpu")
-	memory := c.PostForm("memory")
 	username := common.GetUserName(c)
 
-	if err := validateEditQuotas(username, project, cpu, memory); err != nil {
-		c.HTML(http.StatusOK, editQuotasURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.EditQuotasCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateEditQuotas(username, data.Project, data.CPU, data.Memory); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := updateQuotas(username, project, cpu, memory); err != nil {
-		c.HTML(http.StatusOK, editQuotasURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
+		if err := updateQuotas(username, data.Project, data.CPU, data.Memory); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{ Message: "Die neuen Quotas wurden gespeichert" })
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
-
-	c.HTML(http.StatusOK, editQuotasURL, gin.H{
-		"Success": "Die neuen Quotas wurden gespeichert",
-	})
 }
 
 func validateEditQuotas(username string, project string, cpu string, memory string) error {

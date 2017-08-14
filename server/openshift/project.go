@@ -14,77 +14,66 @@ import (
 )
 
 func newProjectHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	billing := c.PostForm("billing")
-	megaid := c.PostForm("megaid")
 	username := common.GetUserName(c)
 
-	if err := validateNewProject(project, billing, false); err != nil {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.NewProjectCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewProject(data.Project, data.Billing, false); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := createNewProject(project, username, billing, megaid); err != nil {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createNewProject(data.Project, username, data.Billing, data.MegaId); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Projekt wurde erstellt" })
+		}
 	} else {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Success": "Das Projekt wurde erstellt",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func newTestProjectHandler(c *gin.Context) {
-	project := c.PostForm("project")
 	username := common.GetUserName(c)
 
-	// Special values for a test project
-	billing := "keine-verrechnung"
-	project = username + "-" + project
+	var data common.NewTestProjectCommand
+	if c.BindJSON(&data) == nil {
+		// Special values for a test project
+		billing := "keine-verrechnung"
+		data.Project = username + "-" + data.Project
 
-	if err := validateNewProject(project, billing, true); err != nil {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Error": err.Error(),
-			"User":  common.GetUserName(c),
-		})
-		return
-	}
-	if err := createNewProject(project, username, billing, ""); err != nil {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Error": err.Error(),
-			"User":  common.GetUserName(c),
-		})
+		if err := validateNewProject(data.Project, billing, true); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
+
+		if err := createNewProject(data.Project, username, billing, ""); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Test-Projekt wurde erstellt" })
+		}
 	} else {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Success": "Das Test-Projekt wurde erstellt",
-			"User":    common.GetUserName(c),
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func updateBillingHandler(c *gin.Context) {
 	username := common.GetUserName(c)
-	project := c.PostForm("project")
-	billing := c.PostForm("billing")
 
-	if err := validateBillingInformation(project, billing, username); err != nil {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.EditBillingDataCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateBillingInformation(data.Project, data.Billing, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+			return
+		}
 
-	if err := createOrUpdateMetadata(project, billing, "", username); err != nil {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createOrUpdateMetadata(data.Project, data.Billing, "", username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error() })
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Die neuen Daten wurden gespeichert" })
+		}
 	} else {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Success": "Die neuen Daten wurden gespeichert",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
