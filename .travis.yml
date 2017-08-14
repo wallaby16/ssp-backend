@@ -17,7 +17,7 @@ install:
 script:
 # Copy service files
 - mkdir -p ./dist/static/dist
-- cp ./install/* ./dist/
+- cp ./glusterapi/install/* ./dist/
 
 # Build golang
 - go test -v github.com/oscp/cloud-selfservice-portal/glusterapi/...

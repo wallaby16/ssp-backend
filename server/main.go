@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	gin.SetMode(gin.DebugMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 
