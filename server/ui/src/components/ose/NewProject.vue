@@ -11,13 +11,15 @@
         </div>
         <br>
         <form v-on:submit.prevent="newProject">
-            <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
             <b-field label="Projekt-Name">
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
                          required>
                 </b-input>
             </b-field>
+            <b-message type="is-info">
+                Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten
+            </b-message>
 
             <b-field label="Kontierungsnummer">
                 <b-input v-model.trim="billing"

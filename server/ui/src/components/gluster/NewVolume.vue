@@ -18,14 +18,13 @@
                 </b-input>
             </b-field>
 
-            <p><em></em></p>
             <b-field label="Grösse">
                 <b-input v-model.trim="size"
                          placeholder="100M"
                          required>
                 </b-input>
             </b-field>
-            <b-message type="is-warning">
+            <b-message type="is-info">
                 Grösse angeben mit Einheit (M/G) z.B. 100M oder 5G. Ab 1024M muss G verwendet werden
             </b-message>
 
@@ -49,7 +48,7 @@
                     <span>ReadWriteMany (RWX)</span>
                 </b-radio-button>
             </b-field>
-            <b-message type="is-warning">
+            <b-message type="is-info">
                 Siehe <a href="https://docs.openshift.com/container-platform/3.3/architecture/additional_concepts/storage.html#pv-access-modes">Dokumentation</a>
             </b-message>
             <br>

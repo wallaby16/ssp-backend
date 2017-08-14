@@ -10,8 +10,8 @@
             </div>
         </div>
         <br>
-        <b-message type="is-danger">
-            ACHTUNG: In OpenShift wird nach dem Vergrössern immer noch die alte Grösse angegeben sein. Dieser Wert lässt sich im Moment leider nicht verändern.
+        <b-message title="ACHTUNG" type="is-danger">
+            In OpenShift wird nach dem Vergrössern immer noch die alte Grösse angegeben sein. Dieser Wert lässt sich im Moment leider nicht verändern.
         </b-message>
 
         <form v-on:submit.prevent="growGlusterVolume">
@@ -28,7 +28,7 @@
                          required>
                 </b-input>
             </b-field>
-            <b-message type="is-warning">
+            <b-message type="is-info">
                 Das Volume wird auf die angegebene Grösse vergrösert. Verkleinern ist nicht möglich. z.B. 100M oder 5G
             </b-message>
 
@@ -38,7 +38,7 @@
                          required>
                 </b-input>
             </b-field>
-            <b-message type="is-warning">
+            <b-message type="is-info">
                 Nicht der Name des PVC, sondern das was in OpenShift unter "Storage" > Spalte "Status" > <strong>fett</strong> geschrieben ist
             </b-message>
 

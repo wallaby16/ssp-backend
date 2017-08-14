@@ -11,13 +11,9 @@
         </div>
         <br>
         <form v-on:submit.prevent="newTestProject">
-            <p><em>Projekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten</em></p><br>
-
-
             <b-field>
-                <label class="label">Projekt-Name</label>
+                <label class="label">Testprojekt-Name</label>
             </b-field>
-
             <b-field class="has-addons">
                 <p class="control">
                     <span class="button is-static">{{ username }}-</span>
@@ -29,6 +25,10 @@
                     </b-input>
                 </p>
             </b-field>
+
+            <b-message type="is-info">
+                Testprojekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten
+            </b-message>
 
             <button type="submit"
                     v-bind:class="{'is-loading': loading}"
