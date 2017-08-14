@@ -10,7 +10,7 @@ func init() {
 	ExecRunner = TestRunner{}
 }
 
-func TestCreateVolume_Empty(t *testing.T){
+func TestCreateVolume_Empty(t *testing.T) {
 	_, err := createVolume("", "")
 	assert(t, err != nil, "createVolume should throw error if called empty")
 }
@@ -56,6 +56,6 @@ func TestCreateVolume(t *testing.T) {
 	equals(t, "bash -c restorecon -Rv /project/pv1/brick", commands[9])
 
 	ip, _ := getLocalServersIP()
-	equals(t, "bash -c gluster volume create vol_project_pv1 replica 2 " + ip + ":/project/pv1/brick ", commands[11])
+	equals(t, "bash -c gluster volume create vol_project_pv1 replica 2 "+ip+":/project/pv1/brick ", commands[11])
 	equals(t, "bash -c gluster volume start vol_project_pv1", commands[12])
 }

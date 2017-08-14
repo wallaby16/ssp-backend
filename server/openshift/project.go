@@ -8,83 +8,98 @@ import (
 	"net/http"
 	"strings"
 
+	"fmt"
+
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 )
 
 func newProjectHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	billing := c.PostForm("billing")
-	megaid := c.PostForm("megaid")
 	username := common.GetUserName(c)
 
-	if err := validateNewProject(project, billing, false); err != nil {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.NewProjectCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewProject(data.Project, data.Billing, false); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
 
-	if err := createNewProject(project, username, billing, megaid); err != nil {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createNewProject(data.Project, username, data.Billing, data.MegaId); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Das Projekt %v wurde erstellt", data.Project),
+			})
+		}
 	} else {
-		c.HTML(http.StatusOK, newProjectURL, gin.H{
-			"Success": "Das Projekt wurde erstellt",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func newTestProjectHandler(c *gin.Context) {
-	project := c.PostForm("project")
 	username := common.GetUserName(c)
 
-	// Special values for a test project
-	billing := "keine-verrechnung"
-	project = username + "-" + project
+	var data common.NewTestProjectCommand
+	if c.BindJSON(&data) == nil {
+		// Special values for a test project
+		billing := "keine-verrechnung"
+		data.Project = username + "-" + data.Project
 
-	if err := validateNewProject(project, billing, true); err != nil {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Error": err.Error(),
-			"User":  common.GetUserName(c),
-		})
+		if err := validateNewProject(data.Project, billing, true); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		if err := createNewProject(data.Project, username, billing, ""); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Das Test-Projekt %v wurde erstellt", data.Project),
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
+func getBillingHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	project := c.Param("project")
+
+	if err := validateAdminAccess(username, project); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		return
 	}
-	if err := createNewProject(project, username, billing, ""); err != nil {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Error": err.Error(),
-			"User":  common.GetUserName(c),
-		})
+
+	if billingData, err := getProjectBillingInformation(project); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 	} else {
-		c.HTML(http.StatusOK, newTestProjectURL, gin.H{
-			"Success": "Das Test-Projekt wurde erstellt",
-			"User":    common.GetUserName(c),
+		c.JSON(http.StatusOK, common.ApiResponse{
+			Message: fmt.Sprintf("Aktuelle Verrechnungsdaten für Projekt %v: %v", project, billingData),
 		})
 	}
 }
 
 func updateBillingHandler(c *gin.Context) {
 	username := common.GetUserName(c)
-	project := c.PostForm("project")
-	billing := c.PostForm("billing")
 
-	if err := validateBillingInformation(project, billing, username); err != nil {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.EditBillingDataCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateBillingInformation(data.Project, data.Billing, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
 
-	if err := createOrUpdateMetadata(project, billing, "", username); err != nil {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createOrUpdateMetadata(data.Project, data.Billing, "", username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Die Verrechnungsdaten wurden gespeichert: %v", data.Billing),
+			})
+		}
 	} else {
-		c.HTML(http.StatusOK, updateBillingURL, gin.H{
-			"Success": "Die neuen Daten wurden gespeichert",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
@@ -95,6 +110,19 @@ func validateNewProject(project string, billing string, isTestproject bool) erro
 
 	if !isTestproject && len(billing) == 0 {
 		return errors.New("Kontierungsnummer muss angegeben werden")
+	}
+
+	return nil
+}
+
+func validateAdminAccess(username string, project string) error {
+	if len(project) == 0 {
+		return errors.New("Projektname muss angegeben werden")
+	}
+
+	// Validate permissions
+	if err := checkAdminPermissions(username, project); err != nil {
+		return err
 	}
 
 	return nil
@@ -192,6 +220,30 @@ func changeProjectPermission(project string, username string) error {
 	errMsg, _ := ioutil.ReadAll(resp.Body)
 	log.Println("Error updating project permissions:", err, resp.StatusCode, string(errMsg))
 	return errors.New(genericAPIError)
+}
+
+func getProjectBillingInformation(project string) (string, error) {
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project, nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error from server: ", err.Error())
+		return "", errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error decoding json:", err, resp.StatusCode)
+		return "", errors.New(genericAPIError)
+	}
+
+	billing := json.Path("metadata.annotations").S("openshift.io/kontierung-element").Data()
+	if (billing != nil) {
+		return billing.(string), nil
+	} else {
+		return "Keine Daten hinterlegt", nil
+	}
 }
 
 func createOrUpdateMetadata(project string, billing string, megaid string, username string) error {

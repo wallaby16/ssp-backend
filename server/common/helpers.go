@@ -9,7 +9,6 @@ import (
 
 	"errors"
 	"fmt"
-	"os"
 )
 
 // ValidateIntInput checks if a the value is bigger than the specified maxValue
@@ -25,7 +24,7 @@ func ValidateIntInput(maxValue string, input string) error {
 	}
 
 	if inputInt > maxInt {
-		return fmt.Errorf("Du kannst maximal %v eintragen", maxValue)
+		return fmt.Errorf("Der Maximalwert für diese Eingabe ist: %v", maxValue)
 	}
 
 	return nil
@@ -39,7 +38,7 @@ func GetUserName(c *gin.Context) string {
 
 // DebugMode returns if gin is running in debug mode
 func DebugMode() bool {
-	mode := os.Getenv("GIN_MODE")
+	mode := gin.Mode()
 
-	return mode != "release"
+	return mode != gin.ReleaseMode
 }

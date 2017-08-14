@@ -7,12 +7,13 @@ We at [@SchweizerischeBundesbahnen](https://github.com/SchweizerischeBundesbahne
 
 Persistent storage:
 - Create gluster volumes
+- Grow the size of a gluster volume
 - Create PV, PVC, Gluster Endpoint & Service in OpenShift
 
 So we built this tool which allows users to do certain things in self service. The tool checks permissions & certain conditions.
 
 # Components
-- The Self-Service-Portal (as a container)
+- The Self-Service-Portal (as container)
 - The GlusterFS-API server
 
 # Installation & Documentation
@@ -68,6 +69,7 @@ oc edit clusterPolicy default
       - persistentvolumeclaims
       verbs:
       - create
+      - list
     - apiGroups: null
       attributeRestrictions: null
       resources:

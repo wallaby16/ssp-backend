@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 	"net"
+	"os"
 	"os/exec"
 	"strings"
-	"os"
 )
 
 var MaxGB int

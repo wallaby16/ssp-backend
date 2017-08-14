@@ -26,73 +26,68 @@ const (
 )
 
 func newVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	size := strings.ToUpper(c.PostForm("size"))
-	pvcName := c.PostForm("pvcname")
-	mode := c.PostForm("mode")
 	username := common.GetUserName(c)
 
-	if err := validateNewVolume(project, size, pvcName, mode, username); err != nil {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.NewVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewVolume(data.Project, data.Size, data.PvcName, data.Mode, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
 
-	if err := createNewVolume(project, username, size, pvcName, mode); err != nil {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := createNewVolume(data.Project, username, data.Size, data.PvcName, data.Mode); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Das Volume wurde erstellt. Deinem Projekt wurde das PVC, und der Gluster Service & Endpunkte hinzugefügt.",
+			})
+		}
 	} else {
-		c.HTML(http.StatusOK, newVolumeURL, gin.H{
-			"Success": "Das Volume wurde erstellt. Deinem Projekt wurde das PVC, und der Gluster Service & Endpunkte hinzugefügt.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func fixVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
 	username := common.GetUserName(c)
 
-	if err := validateFixVolume(project, username); err != nil {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.FixVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateFixVolume(data.Project, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
 
-	if err := recreateGlusterObjects(project, username); err != nil {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := recreateGlusterObjects(data.Project, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Die Gluster-Objekte wurden in deinem Projekt erzeugt.",
+			})
+		}
+
 	} else {
-		c.HTML(http.StatusOK, fixVolumeURL, gin.H{
-			"Success": "Die Gluster-Objekte wurden in deinem Projekt erzeugt.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
 func growVolumeHandler(c *gin.Context) {
-	project := c.PostForm("project")
-	newSize := strings.ToUpper(c.PostForm("newsize"))
-	pvName := c.PostForm("pvname")
 	username := common.GetUserName(c)
 
-	if err := validateGrowVolume(project, newSize, pvName, username); err != nil {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
-		return
-	}
+	var data common.GrowVolumeCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateGrowVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
 
-	if err := growExistingVolume(project, newSize, pvName, username); err != nil {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Error": err.Error(),
-		})
+		if err := growExistingVolume(data.Project, data.NewSize, data.PvName, username); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{Message: "Das Volume wurde vergrössert."})
+		}
+
 	} else {
-		c.HTML(http.StatusOK, growVolumeURL, gin.H{
-			"Success": "Das Volume wurde vergrössert.",
-		})
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
 }
 
@@ -108,6 +103,11 @@ func validateNewVolume(project string, size string, pvcName string, mode string,
 
 	// Permissions on project
 	if err := checkAdminPermissions(username, project); err != nil {
+		return err
+	}
+
+	// Check if pvc name already taken
+	if err := checkPvcName(project, pvcName); err != nil {
 		return err
 	}
 
@@ -147,11 +147,11 @@ func validateFixVolume(project string, username string) error {
 
 func validateMaxSize(size string) error {
 	maxMB := 1024
-	maxGB := os.Getenv("MAX_GB")
+	maxGB := os.Getenv("MAX_VOLUME_GB")
 
 	maxGBInt, errGB := strconv.Atoi(maxGB)
 	if errGB != nil || maxGBInt <= 0 {
-		log.Fatal("Env variable 'MAX_GB' must be specified and a valid integer")
+		log.Fatal("Env variable 'MAX_VOLUME_GB' must be specified and a valid integer")
 	}
 
 	// Size limits
@@ -173,6 +173,38 @@ func validateMaxSize(size string) error {
 
 		if sizeInt > maxGBInt {
 			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
+		}
+	}
+
+	return nil
+}
+
+func checkPvcName(project string, pvcName string) error {
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/" + project + "/persistentvolumeclaims", nil)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from server while getting pvc-list: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error parsing body of response:", err)
+		return errors.New(genericAPIError)
+	}
+
+	// Check if pvc name is not already used
+	children, err := json.S("items").Children()
+	if err != nil {
+		log.Println("Unable to parse pvc list", err.Error())
+		return errors.New(genericAPIError)
+	}
+	for _, v := range children {
+		if v.Path("metadata.name").Data().(string) == pvcName {
+			return fmt.Errorf("Der gewünschte PVC-Name %v existiert bereits.", pvcName)
 		}
 	}
 
@@ -220,7 +252,8 @@ func createGlusterVolume(project string, size string, username string) (string, 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		log.Println("Error calling gluster-api", err.Error())
+		return "", errors.New(genericAPIError)
 	}
 
 	defer resp.Body.Close()
@@ -263,7 +296,8 @@ func growExistingVolume(project string, newSize string, pvName string, username 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		log.Println("Error calling gluster-api", err.Error())
+		return errors.New(genericAPIError)
 	}
 
 	defer resp.Body.Close()
