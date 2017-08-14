@@ -106,6 +106,11 @@ func validateNewVolume(project string, size string, pvcName string, mode string,
 		return err
 	}
 
+	// Check if pvc name already taken
+	if err := checkPvcName(project, pvcName); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -168,6 +173,38 @@ func validateMaxSize(size string) error {
 
 		if sizeInt > maxGBInt {
 			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
+		}
+	}
+
+	return nil
+}
+
+func checkPvcName(project string, pvcName string) error {
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/" + project + "/persistentvolumeclaims", nil)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from server while getting pvc-list: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error parsing body of response:", err)
+		return errors.New(genericAPIError)
+	}
+
+	// Check if pvc name is not already used
+	children, err := json.S("items").Children()
+	if err != nil {
+		log.Println("Unable to parse pvc list", err.Error())
+		return errors.New(genericAPIError)
+	}
+	for _, v := range children {
+		if v.Path("metadata.name").Data().(string) == pvcName {
+			return fmt.Errorf("Der gewünschte PVC-Name %v existiert bereits.", pvcName)
 		}
 	}
 
