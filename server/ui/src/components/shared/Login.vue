@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -21,7 +21,7 @@
                     class="button is-primary">Login
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>

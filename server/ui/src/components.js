@@ -4,6 +4,7 @@ import App from './components/App.vue';
 import Home from './components/shared/Home.vue';
 import Nav from './components/shared/Nav.vue';
 import Login from './components/shared/Login.vue';
+import Notification from './components/shared/Notification.vue';
 // OSE-Components
 import EditQuota from './components/ose/EditQuota.vue';
 import NewProject from './components/ose/NewProject.vue';
@@ -17,6 +18,7 @@ import GrowVolume from './components/gluster/GrowVolume.vue';
 
 Vue.component('login', Login);
 Vue.component('navbar', Nav);
+Vue.component('notification', Notification);
 
 export const GlobalComponents = {
   App,

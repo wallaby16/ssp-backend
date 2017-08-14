@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <div>
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
@@ -26,36 +26,43 @@
             </b-field>
 
             <b-field label="MEGA-ID">
-                <b-input v-model.trim="megaid"
+                <b-input v-model.trim="megaId"
                          required>
                 </b-input>
             </b-field>
 
-            <button type="submit" v-if="!done"
+            <button type="submit"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Neues Projekt erstellen
             </button>
         </form>
-    </section>
+    </div>
 </template>
 
 <script>
   export default {
     data() {
       return {
-        megaid: '',
+        megaId: '',
         billing: '',
         projectname: '',
-        loading: false,
-        done: false
+        loading: false
       }
     },
     methods: {
-      newProject: function(event) {
+      newProject: function() {
         this.projectname = this.projectname.toLowerCase()
         this.loading = true;
-//          this.done = true;
-        // Todo do it
+
+        this.$http.post('/api/ose/project', {
+          project: this.projectname,
+          billing: this.billing,
+          megaId: this.megaId
+        }).then(() => {
+          this.loading = false;
+        }, () => {
+          this.loading = false;
+        });
       }
     }
   }

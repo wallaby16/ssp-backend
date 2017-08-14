@@ -21,12 +21,12 @@ Vue.use(VueResource);
 Vue.http.interceptors.push(function(request, next) {
   next(function(res) {
     if (res.body.message) {
-      this.$toast.open({
-        type: res.status === 200 ? 'is-success' : 'is-danger',
-        message: res.body.message,
-        duration: 5000
+      this.$store.commit('setNotification', {
+        notification: {
+          type:  res.status === 200 ? 'success' : 'danger',
+          message: res.body.message
+        }
       });
-
     }
   });
 });

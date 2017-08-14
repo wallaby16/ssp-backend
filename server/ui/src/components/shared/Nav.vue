@@ -61,7 +61,7 @@
         this.$store.commit('setUser', {user: null});
         this.$toast.open({
           type: 'is-success',
-          message: 'Du hast dich ausgeloggt'
+          message: 'Du wurdest ausgeloggt'
         });
         this.$router.push({ path: '/login' })
       }

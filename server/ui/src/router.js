@@ -1,4 +1,4 @@
-import {GlobalComponents,LocalComponents} from './components';
+import {GlobalComponents, LocalComponents} from './components';
 import VueRouter from 'vue-router';
 import store from './store/index';
 
@@ -35,12 +35,15 @@ const routes = [
   }
 ];
 
-// Global auth-guard
 const router = new VueRouter({routes});
 
 router.beforeEach((to, from, next) => {
+  // Cleanup old notifications
+  store.commit('setNotification', {notification: {}});
+
+  // Auth-Protection
   if (to.path !== '/login' && !store.state.user) {
-    console.error('Not yet logged in, navigating to login')
+    console.error('Not yet logged in, navigating to login');
     next({path: '/login'});
   } else {
     next();
