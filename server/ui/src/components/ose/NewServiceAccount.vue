@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> Service-Account anlegen</h1>
+                    <h1 class="title"><i class="material-icons">account_circle</i> Service-Account anlegen</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier kannst du für dein Projekt einen Service-Account anlegen</h2>

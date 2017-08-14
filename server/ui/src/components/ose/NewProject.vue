@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> OpenShift Projekt anlegen</h1>
+                    <h1 class="title"><i class="material-icons">speaker_notes</i> OpenShift Projekt anlegen</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier kannst du ein OpenShift Projekt erstellen</h2>

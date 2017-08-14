@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> Persistent Volume vergrösern</h1>
+                    <h1 class="title"><i class="material-icons">cloud_upload</i> Persistent Volume vergrösern</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier kannst du ein Persistent Volume vergrössern</h2>

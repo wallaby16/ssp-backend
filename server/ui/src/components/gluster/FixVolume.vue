@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> Gluster Konfiguration erzeugen</h1>
+                    <h1 class="title"><i class="material-icons">perm_scan_wifi</i> Gluster Konfiguration erzeugen</h1>
                 </div>
                 <h2 class="subtitle">
                     Diese Funktion erstellt die Gluster Objekte (Service & Endpoints) in deinem Projekt</h2>

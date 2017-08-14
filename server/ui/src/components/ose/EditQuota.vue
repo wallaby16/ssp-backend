@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><span class="fa fa-lock"></span> Projekt Quotas anpassen</h1>
+                    <h1 class="title"><i class="material-icons">cached</i> Projekt Quotas anpassen</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier kannst du CPU / Memory Quotas deines Projektes anpassen. Alle Anpassungen werden geloggt.</h2>

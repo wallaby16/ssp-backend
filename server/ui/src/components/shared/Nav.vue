@@ -19,7 +19,7 @@
                         OpenShift
                     </a>
                     <div class="navbar-dropdown">
-                        <router-link to="/ose/editquotas" class="navbar-item">Quotas anpassen</router-link>
+                        <router-link to="/ose/editquotas" class="navbar-item"> Quotas anpassen</router-link>
                         <router-link to="/ose/newproject" class="navbar-item">Projekt anlegen</router-link>
                         <router-link to="/ose/newtestproject" class="navbar-item">Test-Projekt anlegen</router-link>
                         <router-link to="/ose/updatebilling" class="navbar-item">Kontierungsnummer anzeigen/ändern</router-link>
