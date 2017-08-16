@@ -11,20 +11,29 @@
         </div>
         <br>
         <form v-on:submit.prevent="createServiceAccount">
-            <b-field label="Projekt-Name">
+            <b-field label="Projekt-Name"
+                     :type="errors.has('Projekt-Name') ? 'is-danger' : ''"
+                     :message="errors.first('Projekt-Name')">
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
-                         required>
+                         name="Projekt-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
 
-            <b-field label="Service-Account Name">
+            <b-field label="Service-Account Name"
+                     :type="errors.has('Service-Account') ? 'is-danger' : ''"
+                     :message="errors.first('Service-Account')">
                 <b-input v-model.trim="serviceAccount"
-                         required>
+                         name="Service-Account"
+                         v-validate="{ rules: { required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])$/} }">
                 </b-input>
             </b-field>
+            <b-message type="is-info">
+                Service-Account Name darf nur Kleinbuchstaben, Zahlen und - enthalten
+            </b-message>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Service-Account erstellen
             </button>
@@ -39,21 +48,25 @@
         serviceAccount: '',
         project: '',
         loading: false
-      }
+      };
     },
     methods: {
       createServiceAccount: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/ose/serviceaccount', {
-          project: this.project,
-          serviceAccount: this.serviceAccount
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/ose/serviceaccount', {
+              project: this.project,
+              serviceAccount: this.serviceAccount
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>

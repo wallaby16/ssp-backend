@@ -11,25 +11,38 @@
         </div>
         <br>
         <form v-on:submit.prevent="editQuotas">
-            <b-field label="Projekt-Name">
-                <b-input v-model.trim="project" required></b-input>
+            <b-field label="Projekt-Name"
+                     :type="errors.has('Projekt-Name') ? 'is-danger' : ''"
+                     :message="errors.first('Projekt-Name')">
+                <b-input v-model.trim="project"
+                         name="Projekt-Name"
+                         v-validate="'required'">
+                </b-input>
             </b-field>
 
-            <b-field label="Neue CPU Quotas [Cores]">
+            <b-field label="Neue CPU Quotas [Cores]"
+                     :type="errors.has('CPU') ? 'is-danger' : ''"
+                     :message="errors.first('CPU')">
                 <b-input type="number"
+                         v-validate="'required'"
+                         name="CPU"
                          v-model.number="cpu"
                          min="1">
                 </b-input>
             </b-field>
 
-            <b-field label="Neue Memory Quotas [GB]">
+            <b-field label="Neue Memory Quotas [GB]"
+                     :type="errors.has('Memory') ? 'is-danger' : ''"
+                     :message="errors.first('Memory')">
                 <b-input type="number"
                          v-model.number="memory"
+                         v-validate="'required'"
+                         name="Memory"
                          min="2">
                 </b-input>
             </b-field>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Quotas anpassen
             </button>
@@ -45,22 +58,26 @@
         memory: 4,
         project: '',
         loading: false
-      }
+      };
     },
     methods: {
       editQuotas: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/ose/quotas', {
-          project: this.project,
-          cpu: '' + this.cpu,
-          memory: '' + this.memory
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/ose/quotas', {
+              project: this.project,
+              cpu: '' + this.cpu,
+              memory: '' + this.memory
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>
