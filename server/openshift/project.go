@@ -146,6 +146,7 @@ func validateBillingInformation(project string, billing string, username string)
 }
 
 func createNewProject(project string, username string, billing string, megaid string) error {
+	project = strings.ToLower(project)
 	p := newObjectRequest("ProjectRequest", project)
 
 	client, req := getOseHTTPClient("POST",

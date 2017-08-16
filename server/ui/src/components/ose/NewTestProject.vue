@@ -14,14 +14,17 @@
             <b-field>
                 <label class="label">Testprojekt-Name</label>
             </b-field>
-            <b-field class="has-addons">
+            <b-field class="has-addons"
+                     :type="errors.has('Testprojekt-Name') ? 'is-danger' : ''"
+                     :message="errors.first('Testprojekt-Name')">
                 <p class="control">
                     <span class="button is-static">{{ username }}-</span>
                 </p>
                 <p class="control">
                     <b-input v-model.trim="testprojectname"
-                             placeholder="testprojekt"
-                             required>
+                             name="Testprojekt-Name"
+                             v-validate="{ rules: { required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])$/} }"
+                             placeholder="testprojekt">
                     </b-input>
                 </p>
             </b-field>
@@ -30,7 +33,7 @@
                 Testprojekt-Name darf nur Kleinbuchstaben, Zahlen und - enthalten
             </b-message>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Neues Test-Projekt erstellen
             </button>
@@ -49,21 +52,24 @@
       return {
         testprojectname: '',
         loading: false
-      }
+      };
     },
     methods: {
       newTestProject: function() {
-        this.testprojectname = this.testprojectname.toLowerCase()
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/ose/testproject', {
-          project: this.testprojectname
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/ose/testproject', {
+              project: this.testprojectname
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>
