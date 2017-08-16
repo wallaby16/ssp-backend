@@ -11,26 +11,35 @@
         </div>
         <br>
         <form v-on:submit.prevent="createGlusterVolume">
-            <b-field label="Projekt-Name">
+            <b-field label="Projekt-Name"
+                     :type="errors.has('Projekt-Name') ? 'is-danger' : ''"
+                     :message="errors.first('Projekt-Name')">
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
-                         required>
+                         name="Projekt-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
 
-            <b-field label="Grösse">
+            <b-field label="Grösse"
+                     :type="errors.has('Grösse') ? 'is-danger' : ''"
+                     :message="errors.first('Grösse')">
                 <b-input v-model.trim="size"
                          placeholder="100M"
-                         required>
+                         name="Grösse"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
             <b-message type="is-info">
                 Grösse angeben mit Einheit (M/G) z.B. 100M oder 5G. Ab 1024M muss G verwendet werden
             </b-message>
 
-            <b-field label="Name des Persistent Volume Claims">
+            <b-field label="Name des Persistent Volume Claims"
+                     :type="errors.has('PVC-Name') ? 'is-danger' : ''"
+                     :message="errors.first('PVC-Name')">
                 <b-input v-model.trim="pvcName"
-                         required>
+                         name="PVC-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
 
@@ -49,11 +58,12 @@
                 </b-radio-button>
             </b-field>
             <b-message type="is-info">
-                Siehe <a href="https://docs.openshift.com/container-platform/3.3/architecture/additional_concepts/storage.html#pv-access-modes">Dokumentation</a>
+                Siehe <a
+                    href="https://docs.openshift.com/container-platform/3.3/architecture/additional_concepts/storage.html#pv-access-modes">Dokumentation</a>
             </b-message>
             <br>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Persistent Volume erstellen
             </button>
@@ -70,23 +80,27 @@
         size: '',
         mode: 'ReadWriteOnce',
         loading: false
-      }
+      };
     },
     methods: {
       createGlusterVolume: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/gluster/volume', {
-          project: this.project,
-          size: this.size,
-          pvcName: this.pvcName,
-          mode: this.mode
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/gluster/volume', {
+              project: this.project,
+              size: this.size,
+              pvcName: this.pvcName,
+              mode: this.mode
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>

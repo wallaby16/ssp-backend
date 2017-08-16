@@ -8,15 +8,25 @@
             </div>
         </div>
         <form v-on:submit.prevent="login">
-            <b-field label="Benutzername (U-Nummer)">
-                <b-input v-model.trim="username" required></b-input>
+            <b-field label="Benutzername (U-Nummer)"
+                     :type="errors.has('Benutzername') ? 'is-danger' : ''"
+                     :message="errors.first('Benutzername')">
+                <b-input v-model.trim="username"
+                         name="Benutzername"
+                         v-validate="'required'">
+                </b-input>
             </b-field>
 
-            <b-field label="Passwort">
-                <b-input type="password" v-model="password" required></b-input>
+            <b-field label="Passwort"
+                     :type="errors.has('Passwort') ? 'is-danger' : ''"
+                     :message="errors.first('Passwort')">
+                <b-input type="password" v-model="password"
+                         name="Passwort"
+                         v-validate="'required'">
+                </b-input>
             </b-field>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Login
             </button>
@@ -31,41 +41,45 @@
         username: '',
         password: '',
         loading: false
-      }
+      };
     },
     methods: {
       login: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/login', {
-          username: this.username,
-          password: this.password
-        }).then(res => {
-          this.loading = false;
+            this.$http.post('/login', {
+              username: this.username,
+              password: this.password
+            }).then(res => {
+              this.loading = false;
 
-          // Decode JWT
-          const base64Url = res.body.token.split('.')[1];
-          const base64 = base64Url.replace('-', '+').replace('_', '/');
-          const userData = JSON.parse(window.atob(base64));
+              // Decode JWT
+              const base64Url = res.body.token.split('.')[1];
+              const base64 = base64Url.replace('-', '+').replace('_', '/');
+              const userData = JSON.parse(window.atob(base64));
 
-          this.$store.commit('setUser', {
-            user: {
-              name: userData.id,
-              token: res.body.token
-            }
-          });
+              this.$store.commit('setUser', {
+                user: {
+                  name: userData.id,
+                  token: res.body.token
+                }
+              });
 
-          this.$toast.open({
-            type: 'is-success',
-            message: 'Login war erfolgreich'
-          })
+              this.$toast.open({
+                type: 'is-success',
+                message: 'Login war erfolgreich'
+              });
 
-          this.$router.push({path: '/'})
+              this.$router.push({path: '/'});
 
-        }, () => {
-          this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>

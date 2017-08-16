@@ -10,22 +10,28 @@
             </div>
         </div>
         <br>
-        <b-message title="ACHTUNG" type="is-danger">
+        <b-message type="is-danger">
             In OpenShift wird nach dem Vergrössern immer noch die alte Grösse angegeben sein. Dieser Wert lässt sich im Moment leider nicht verändern.
         </b-message>
 
         <form v-on:submit.prevent="growGlusterVolume">
-            <b-field label="Projekt-Name">
+            <b-field label="Projekt-Name"
+                     :type="errors.has('Projekt-Name') ? 'is-danger' : ''"
+                     :message="errors.first('Projekt-Name')">
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
-                         required>
+                         name="Projekt-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
 
-            <b-field label="Neue Grösse">
+            <b-field label="Neue Grösse"
+                     :type="errors.has('Grösse') ? 'is-danger' : ''"
+                     :message="errors.first('Grösse')">
                 <b-input v-model.trim="newSize"
                          placeholder="100M"
-                         required>
+                         name="Grösse"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
             <b-message type="is-info">
@@ -33,16 +39,20 @@
             </b-message>
 
             <p><em></em></p>
-            <b-field label="Name des Persistent Volumes">
+            <b-field label="Name des Persistent Volumes"
+                     :type="errors.has('PV-Name') ? 'is-danger' : ''"
+                     :message="errors.first('PV-Name')">
                 <b-input v-model.trim="pvName"
-                         required>
+                         name="PV-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
             <b-message type="is-info">
-                Nicht der Name des PVC, sondern das was in OpenShift unter "Storage" > Spalte "Status" > <strong>fett</strong> geschrieben ist
+                Nicht der Name des PVC, sondern das was in OpenShift unter "Storage" > Spalte "Status" > <strong>fett</strong>
+                geschrieben ist
             </b-message>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Persistent Volume vergrössern
             </button>
@@ -58,22 +68,26 @@
         pvName: '',
         newSize: '',
         loading: false
-      }
+      };
     },
     methods: {
       growGlusterVolume: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/gluster/volume/grow', {
-          project: this.project,
-          newSize: this.newSize,
-          pvName: this.pvName
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/gluster/volume/grow', {
+              project: this.project,
+              newSize: this.newSize,
+              pvName: this.pvName
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>
