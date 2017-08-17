@@ -32,7 +32,7 @@ func main() {
 		openshift.RegisterRoutes(auth)
 
 		// DDC routes
-		auth.GET("/ddc/billing", ddc.GetDDCBillingHandler)
+		ddc.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")

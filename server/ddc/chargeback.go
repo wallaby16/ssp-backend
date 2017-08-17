@@ -11,14 +11,22 @@ import (
 	"strconv"
 	"strings"
 
+	"bytes"
+
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 )
 
 const apiErrorDDC = "Fehler beim Aufruf der DDC-API. Bitte erstelle ein Ticket bei DDC."
 
-func GetDDCBillingHandler(c *gin.Context) {
-	result, err := calculateDDCBilling()
+// RegisterRoutes registers the routes for OpenShift
+func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/ddc/billing", getDDCBillingHandler)
+}
+
+func getDDCBillingHandler(c *gin.Context) {
+	rows, err := calculateDDCBilling()
+	result := createCSVReport(rows)
 
 	if err == nil {
 		c.JSON(http.StatusOK, result)
@@ -27,7 +35,29 @@ func GetDDCBillingHandler(c *gin.Context) {
 	}
 }
 
-func calculateDDCBilling() ([]common.DDCBilling, error) {
+func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
+	b := &bytes.Buffer{}
+	wr := csv.NewWriter(b)
+	wr.Comma = ';'
+
+	for _, r := range rows {
+		// Example:
+		// TODO
+		totalString := strconv.FormatFloat(r.Total, 'f', 6, 64)
+		row := []string{"", r.Sender, "","","","","","", r.Art, "", totalString, "", "CHF", "",
+			r.Assignment1, "", r.Assignment2, "", r.Assignment3, "", "", "", "", "", "1", "","ST", "", "", "", "LM1706 DDC ", r.Project + ": " + r.Host}
+		wr.Write(row)
+	}
+
+	wr.Flush()
+
+	return common.DDCBilling{
+		CSV: b.String(),
+		Rows: rows,
+	}
+}
+
+func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 	client, req := getDDCClient()
 
 	resp, err := client.Do(req)
@@ -55,18 +85,9 @@ func calculateDDCBilling() ([]common.DDCBilling, error) {
 	const feeMemory = 30
 	const feeStorage = 1.0
 
-	result := []common.DDCBilling{}
+	result := []common.DDCBillingRow{}
 	for i, value := range records {
 		if i > 0 {
-			var assignment string
-			if value[5] != "" {
-				assignment = value[5]
-			} else if value[6] != "" {
-				assignment = value[6]
-			} else {
-				assignment = value[7]
-			}
-
 			usedCpu, _ := strconv.ParseFloat(value[2], 64)
 			usedMemory, _ := strconv.ParseFloat(value[3], 64)
 			usedStorage, _ := strconv.ParseFloat(value[4], 64)
@@ -79,10 +100,12 @@ func calculateDDCBilling() ([]common.DDCBilling, error) {
 			}
 
 			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory + usedStorage * feeStorage
-			result = append(result, common.DDCBilling{
+			result = append(result, common.DDCBillingRow{
 				Sender: sender,
 				Art:    art,
-				Assignment: assignment,
+				Assignment1: value[5],
+				Assignment2: value[6],
+				Assignment3: value[7],
 				Total: totalPrice,
 				TotalCPU: usedCpu * feeCpu,
 				TotalMemory: usedMemory * feeMemory,

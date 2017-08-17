@@ -57,11 +57,18 @@ type ApiResponse struct {
 }
 
 type DDCBilling struct {
+	Rows []DDCBillingRow `json:"rows"`
+	CSV  string `json:"csv"`
+}
+
+type DDCBillingRow struct {
 	Sender       string `json:"sender"`
 	Art          string `json:"art"`
 	Project      string `json:"project"`
 	Host         string `json:"host"`
-	Assignment   string `json:"assignment"`
+	Assignment1   string `json:"assignment1"`
+	Assignment2   string `json:"assignment2"`
+	Assignment3   string `json:"assignment3"`
 	TotalCPU     float64 `json:"totalCpu"`
 	TotalMemory  float64 `json:"totalMemory"`
 	TotalStorage float64 `json:"totalStorage"`
