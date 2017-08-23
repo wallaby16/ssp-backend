@@ -62,15 +62,15 @@ type DDCBilling struct {
 }
 
 type DDCBillingRow struct {
-	Sender       string `json:"sender"`
-	Art          string `json:"art"`
-	Project      string `json:"project"`
-	Host         string `json:"host"`
-	Assignment1   string `json:"assignment1"`
-	Assignment2   string `json:"assignment2"`
-	Assignment3   string `json:"assignment3"`
-	TotalCPU     float64 `json:"totalCpu"`
-	TotalMemory  float64 `json:"totalMemory"`
-	TotalStorage float64 `json:"totalStorage"`
-	Total        float64 `json:"total"`
+	Sender              string `json:"sender"`
+	Art                 string `json:"art"`
+	Project             string `json:"project"`
+	Host                string `json:"host"`
+	ReceptionAssignment string `json:"receptionAssignment"`
+	OrderReception      string `json:"orderReception"`
+	PspElement          string `json:"pspElement"`
+	TotalCPU            float64 `json:"totalCpu"`
+	TotalMemory         float64 `json:"totalMemory"`
+	TotalStorage        float64 `json:"totalStorage"`
+	Total               float64 `json:"total"`
 }

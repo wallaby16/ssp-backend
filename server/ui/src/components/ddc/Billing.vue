@@ -27,14 +27,14 @@
                 <b-table-column field="sender" label="Von" width="40">
                     {{ props.row.sender }}
                 </b-table-column>
-                <b-table-column field="assignment1" label="Nach 1" width="40">
-                    {{ props.row.assignment1 }}
+                <b-table-column field="receptionAssignment" label="EmpfStelle" width="40">
+                    {{ props.row.receptionAssignment }}
                 </b-table-column>
-                <b-table-column field="assignment2" label="Nach 2" width="40">
-                    {{ props.row.assignment2 }}
+                <b-table-column field="orderReception" label="EmpfAuftrag" width="40">
+                    {{ props.row.orderReception }}
                 </b-table-column>
-                <b-table-column field="assignment3" label="Nach 3" width="40">
-                    {{ props.row.assignment3 }}
+                <b-table-column field="pspElement" label="Empfaenger-PSP-Element" width="40">
+                    {{ props.row.pspElement }}
                 </b-table-column>
                 <b-table-column field="art" label="Art" width="40">
                     {{ props.row.art }}

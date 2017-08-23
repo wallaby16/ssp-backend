@@ -40,12 +40,20 @@ func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
 	wr := csv.NewWriter(b)
 	wr.Comma = ';'
 
+	// Title row
+	title := []string{"SendStelle", "SendAuftrag", "Sender-PSP-Element",
+		"SendKdAuft","SndPos","SendNetzplan","SendervorgangSVrg",
+		"Kostenart", "Betrag", "Waehrung",
+		"EmpfStelle", "EmpfAuftrag", "Empfaenger-PSP-Element",
+		"EmpfKdAuft", "EmpPos", "EmpfNetzplan", "Evrg",
+		"Menge gesamt","ME", "PersNr", "Text", "Sys ID"}
+	wr.Write(title)
+
 	for _, r := range rows {
-		// Example:
-		// TODO
-		totalString := strconv.FormatFloat(r.Total, 'f', 6, 64)
-		row := []string{"", r.Sender, "","","","","","", r.Art, "", totalString, "", "CHF", "",
-			r.Assignment1, "", r.Assignment2, "", r.Assignment3, "", "", "", "", "", "1", "","ST", "", "", "", "LM1706 DDC ", r.Project + ": " + r.Host}
+		totalString := strconv.FormatFloat(r.Total, 'f', 2, 64)
+		row := []string{"", r.Sender, "","","","","",r.Art, totalString, "CHF",
+			r.ReceptionAssignment, r.OrderReception, r.PspElement,
+			"", "", "", "", "1", "ST", "", "LM1706 DDC ", r.Project + ": " + r.Host}
 		wr.Write(row)
 	}
 
@@ -81,8 +89,8 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 	const art = "816753"
 	const fee_server = 300.0
 	const fee_client = 100.0
-	const feeCpu = 30
-	const feeMemory = 30
+	const feeCpu = 30.0
+	const feeMemory = 30.0
 	const feeStorage = 1.0
 
 	result := []common.DDCBillingRow{}
@@ -101,17 +109,17 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 
 			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory + usedStorage * feeStorage
 			result = append(result, common.DDCBillingRow{
-				Sender: sender,
-				Art:    art,
-				Assignment1: value[5],
-				Assignment2: value[6],
-				Assignment3: value[7],
-				Total: totalPrice,
-				TotalCPU: usedCpu * feeCpu,
-				TotalMemory: usedMemory * feeMemory,
-				TotalStorage: usedStorage * feeStorage,
-				Project: value[1],
-				Host: value[0],
+				Sender:              sender,
+				Art:                 art,
+				ReceptionAssignment: value[5],
+				OrderReception:      value[6],
+				PspElement:          value[7],
+				Total:               totalPrice,
+				TotalCPU:            usedCpu * feeCpu,
+				TotalMemory:         usedMemory * feeMemory,
+				TotalStorage:        usedStorage * feeStorage,
+				Project:             value[1],
+				Host:                value[0],
 			})
 		}
 	}
