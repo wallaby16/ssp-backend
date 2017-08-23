@@ -11,14 +11,17 @@
         </div>
         <br>
         <form v-on:submit.prevent="fixGlusterObjects">
-            <b-field label="Projekt-Name">
+            <b-field label="Projekt-Name"
+                :type="errors.has('Projekt-Name') ? 'is-danger' : ''"
+                :message="errors.first('Projekt-Name')">
                 <b-input v-model.trim="project"
                          placeholder="projekt-dev"
-                         required>
+                         name="Projekt-Name"
+                         v-validate="'required'">
                 </b-input>
             </b-field>
 
-            <button type="submit"
+            <button :disabled="errors.any()"
                     v-bind:class="{'is-loading': loading}"
                     class="button is-primary">Gluster Objekte erstellen
             </button>
@@ -32,20 +35,24 @@
       return {
         project: '',
         loading: false
-      }
+      };
     },
     methods: {
       fixGlusterObjects: function() {
-        this.loading = true;
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            this.loading = true;
 
-        this.$http.post('/api/gluster/volume/fix', {
-          project: this.project
-        }).then(() => {
-          this.loading = false;
-        }, () => {
-          this.loading = false;
+            this.$http.post('/api/gluster/volume/fix', {
+              project: this.project
+            }).then(() => {
+              this.loading = false;
+            }, () => {
+              this.loading = false;
+            });
+          }
         });
       }
     }
-  }
+  };
 </script>

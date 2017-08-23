@@ -14,4 +14,12 @@
     .notices .toast.is-success {
         background: #00822d
     }
+
+    .field .help {
+        width: 100%;
+    }
+
+    .field.has-addons {
+        flex-wrap: wrap;
+    }
 </style>

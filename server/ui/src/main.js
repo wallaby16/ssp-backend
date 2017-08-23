@@ -2,6 +2,8 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Buefy from 'buefy';
 import VueResource from 'vue-resource';
+import VeeValidate, {Validator} from 'vee-validate';
+import VeeValidateGerman from 'vee-validate/dist/locale/de';
 // Styles
 import 'buefy/lib/buefy.css';
 import './theme.css';
@@ -16,6 +18,11 @@ import router from './router';
 Vue.use(VueRouter);
 Vue.use(Buefy);
 Vue.use(VueResource);
+
+Validator.addLocale(VeeValidateGerman);
+Vue.use(VeeValidate, {
+  locale: 'de'
+});
 
 // Http interceptors: Global response handler
 Vue.http.interceptors.push(function(request, next) {

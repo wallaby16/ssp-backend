@@ -11,14 +11,22 @@ import (
 	"strconv"
 	"strings"
 
+	"bytes"
+
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 )
 
 const apiErrorDDC = "Fehler beim Aufruf der DDC-API. Bitte erstelle ein Ticket bei DDC."
 
-func GetDDCBillingHandler(c *gin.Context) {
-	result, err := calculateDDCBilling()
+// RegisterRoutes registers the routes for OpenShift
+func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/ddc/billing", getDDCBillingHandler)
+}
+
+func getDDCBillingHandler(c *gin.Context) {
+	rows, err := calculateDDCBilling()
+	result := createCSVReport(rows)
 
 	if err == nil {
 		c.JSON(http.StatusOK, result)
@@ -27,7 +35,37 @@ func GetDDCBillingHandler(c *gin.Context) {
 	}
 }
 
-func calculateDDCBilling() ([]common.DDCBilling, error) {
+func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
+	b := &bytes.Buffer{}
+	wr := csv.NewWriter(b)
+	wr.Comma = ';'
+
+	// Title row
+	title := []string{"SendStelle", "SendAuftrag", "Sender-PSP-Element",
+		"SendKdAuft","SndPos","SendNetzplan","SendervorgangSVrg",
+		"Kostenart", "Betrag", "Waehrung",
+		"EmpfStelle", "EmpfAuftrag", "Empfaenger-PSP-Element",
+		"EmpfKdAuft", "EmpPos", "EmpfNetzplan", "Evrg",
+		"Menge gesamt","ME", "PersNr", "Text", "Sys ID"}
+	wr.Write(title)
+
+	for _, r := range rows {
+		totalString := strconv.FormatFloat(r.Total, 'f', 2, 64)
+		row := []string{"", r.Sender, "","","","","",r.Art, totalString, "CHF",
+			r.ReceptionAssignment, r.OrderReception, r.PspElement,
+			"", "", "", "", "1", "ST", "", "LM1706 DDC ", r.Project + ": " + r.Host}
+		wr.Write(row)
+	}
+
+	wr.Flush()
+
+	return common.DDCBilling{
+		CSV: b.String(),
+		Rows: rows,
+	}
+}
+
+func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 	client, req := getDDCClient()
 
 	resp, err := client.Do(req)
@@ -51,22 +89,13 @@ func calculateDDCBilling() ([]common.DDCBilling, error) {
 	const art = "816753"
 	const fee_server = 300.0
 	const fee_client = 100.0
-	const feeCpu = 30
-	const feeMemory = 30
+	const feeCpu = 30.0
+	const feeMemory = 30.0
 	const feeStorage = 1.0
 
-	result := []common.DDCBilling{}
+	result := []common.DDCBillingRow{}
 	for i, value := range records {
 		if i > 0 {
-			var assignment string
-			if value[5] != "" {
-				assignment = value[5]
-			} else if value[6] != "" {
-				assignment = value[6]
-			} else {
-				assignment = value[7]
-			}
-
 			usedCpu, _ := strconv.ParseFloat(value[2], 64)
 			usedMemory, _ := strconv.ParseFloat(value[3], 64)
 			usedStorage, _ := strconv.ParseFloat(value[4], 64)
@@ -79,16 +108,18 @@ func calculateDDCBilling() ([]common.DDCBilling, error) {
 			}
 
 			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory + usedStorage * feeStorage
-			result = append(result, common.DDCBilling{
-				Sender: sender,
-				Art:    art,
-				Assignment: assignment,
-				Total: totalPrice,
-				TotalCPU: usedCpu * feeCpu,
-				TotalMemory: usedMemory * feeMemory,
-				TotalStorage: usedStorage * feeStorage,
-				Project: value[1],
-				Host: value[0],
+			result = append(result, common.DDCBillingRow{
+				Sender:              sender,
+				Art:                 art,
+				ReceptionAssignment: value[5],
+				OrderReception:      value[6],
+				PspElement:          value[7],
+				Total:               totalPrice,
+				TotalCPU:            usedCpu * feeCpu,
+				TotalMemory:         usedMemory * feeMemory,
+				TotalStorage:        usedStorage * feeStorage,
+				Project:             value[1],
+				Host:                value[0],
 			})
 		}
 	}

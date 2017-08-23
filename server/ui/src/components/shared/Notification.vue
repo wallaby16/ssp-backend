@@ -1,7 +1,8 @@
 <template>
     <b-message v-if="notification && notification.type"
                :title="notification.type === 'success' ? 'Erfolgreich' : 'Fehlgeschlagen'"
-               :type="'is-' + notification.type">
+               :type="'is-' + notification.type"
+               :closable="false">
         {{ notification.message }}
     </b-message>
 </template>
@@ -13,5 +14,5 @@
         return this.$store.state.notification;
       }
     }
-  }
+  };
 </script>

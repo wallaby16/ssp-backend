@@ -10,12 +10,15 @@
             </div>
         </div>
         <br>
-        <form v-on:submit.prevent="getDDCBilling">
-            <button type="submit"
-                    v-bind:class="{'is-loading': loading}"
-                    class="button is-primary">Kostenberechnung erstellen
-            </button>
-        </form>
+        <button v-bind:class="{'is-loading': loading}"
+                v-on:click="getDDCBilling"
+                class="button is-primary">Kostenberechnung erstellen
+        </button>
+        <a v-if="csvDownload"
+           class="button is-primary"
+           :href="csvDownload"
+           download="DDC_Verrechnung.csv">Download CSV
+        </a>
         <br>
         <b-table :data="data"
                  :narrowed="true">
@@ -24,8 +27,14 @@
                 <b-table-column field="sender" label="Von" width="40">
                     {{ props.row.sender }}
                 </b-table-column>
-                <b-table-column field="assignment" label="Nach" width="40">
-                    {{ props.row.assignment }}
+                <b-table-column field="receptionAssignment" label="EmpfStelle" width="40">
+                    {{ props.row.receptionAssignment }}
+                </b-table-column>
+                <b-table-column field="orderReception" label="EmpfAuftrag" width="40">
+                    {{ props.row.orderReception }}
+                </b-table-column>
+                <b-table-column field="pspElement" label="Empfaenger-PSP-Element" width="40">
+                    {{ props.row.pspElement }}
                 </b-table-column>
                 <b-table-column field="art" label="Art" width="40">
                     {{ props.row.art }}
@@ -53,20 +62,24 @@
     data() {
       return {
         data: [],
-        loading: false
-      }
+        loading: false,
+        csvDownload: ''
+      };
     },
     methods: {
       getDDCBilling: function() {
         this.loading = true;
 
         this.$http.get('/api/ddc/billing').then((res) => {
-          this.data = res.body;
+          this.data = res.body.rows;
+          let blob = new Blob([res.body.csv], {type: 'text/csv'});
+
+          this.csvDownload = window.URL.createObjectURL(blob);
           this.loading = false;
         }, () => {
           this.loading = false;
         });
       }
     }
-  }
+  };
 </script>
