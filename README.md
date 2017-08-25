@@ -12,6 +12,9 @@ Persistent storage:
 - Increase the size of a gluster volume
 - Create PV, PVC, Gluster Service & Endpoints in OpenShift
 
+Billing:
+- Create a billing report for diffrent platforms
+
 So we built this tool which allows users to do certain things in self service. The tool checks permissions & certain conditions.
 
 # Components
@@ -111,6 +114,7 @@ GLUSTER\_API\_URL|The URL of your Gluster-API|http://glusterserver01:80
 GLUSTER\_SECRET|The basic auth password you configured on the gluster api|secret
 GLUSTER\_IPS|IP addresses of the gluster endpoints|192.168.1.1,192.168.1.2
 MAX\_VOLUME\_GB|How many GB storage can a user order|100
+DDC\_API|URL of the DDC Billing API|http://ddc-api.ch
 
 ## The GlusterFS api
 Use/see the service unit file in ./glusterapi/install/
