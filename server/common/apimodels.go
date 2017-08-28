@@ -66,6 +66,7 @@ type DDCBillingRow struct {
 	Art                 string `json:"art"`
 	Project             string `json:"project"`
 	Host                string `json:"host"`
+	Backup              bool   `json:"backup"`
 	ReceptionAssignment string `json:"receptionAssignment"`
 	OrderReception      string `json:"orderReception"`
 	PspElement          string `json:"pspElement"`

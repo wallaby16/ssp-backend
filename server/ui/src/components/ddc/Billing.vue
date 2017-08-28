@@ -48,6 +48,9 @@
                 <b-table-column field="total" label="Total" width="40" numeric>
                     {{ props.row.total }} CHF
                 </b-table-column>
+                <b-table-column field="backup" label="Mit Backup" width="40" numeric>
+                    {{ props.row.backup }}
+                </b-table-column>
             </template>
 
             <div slot="empty" class="has-text-centered">

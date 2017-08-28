@@ -25,6 +25,9 @@ func RegisterRoutes(r *gin.RouterGroup) {
 }
 
 func getDDCBillingHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	log.Println("Called DDC Billing: ", username)
+
 	rows, err := calculateDDCBilling()
 	result := createCSVReport(rows)
 
@@ -107,17 +110,27 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 				fee = fee_server
 			}
 
-			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory + usedStorage * feeStorage
+			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory
+			storagePrice := usedStorage * feeStorage
+
+			hasBackup := value[11] == "Yes"
+			if hasBackup {
+				storagePrice = storagePrice * 2
+			}
+
+			totalPrice += storagePrice
+
 			result = append(result, common.DDCBillingRow{
 				Sender:              sender,
 				Art:                 art,
 				ReceptionAssignment: value[5],
 				OrderReception:      value[6],
 				PspElement:          value[7],
+				Backup:              hasBackup,
 				Total:               totalPrice,
 				TotalCPU:            usedCpu * feeCpu,
 				TotalMemory:         usedMemory * feeMemory,
-				TotalStorage:        usedStorage * feeStorage,
+				TotalStorage:        storagePrice,
 				Project:             value[1],
 				Host:                value[0],
 			})
