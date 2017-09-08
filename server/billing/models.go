@@ -1,6 +1,28 @@
-package common
+package billing
 
 import "time"
+
+type Project struct {
+	Name              string
+	BillingNumber     string
+	BillingDatapoints []Datapoint
+}
+
+type Datapoint struct {
+	Timestamp               time.Time
+	QuotaCPU                float64
+	QuotaMemory             float64
+	RequestedCPU            float64
+	RequestedMemory         float64
+	UsedCPU                 float64
+	UsedMemory              float64
+	NewrelicApmCU           float64
+	NewrelicSyntheticsCount float64
+	NewrelicBrowser         float64
+	NewrelicMobile          float64
+	SematextPlan            string
+	SematextMonthlyCost     float64
+}
 
 type UnitPrices struct {
 	quotaCPU        float64
@@ -45,7 +67,6 @@ type Costs struct {
 }
 
 // NewRelic-API Types
-
 type Quota struct {
 	Results []QuotaResult
 }
