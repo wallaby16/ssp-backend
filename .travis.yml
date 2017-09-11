@@ -13,6 +13,7 @@ install:
 - go get gopkg.in/appleboy/gin-jwt.v2
 - go get gopkg.in/dgrijalva/jwt-go.v3
 - go get gopkg.in/jarcoal/httpmock.v1
+- go get github.com/coreos/etcd/client
 
 script:
 # Copy service files

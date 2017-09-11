@@ -83,7 +83,7 @@ func chargeBackHandler(c *gin.Context) {
 	quotas, err := getQuotasFromNewRelic(*start, *end, project)
 	if err != nil {
 		c.JSON(http.StatusOK, common.ApiResponse{
-			Message:: err.Error(),
+			Message: err.Error(),
 		})
 		return
 	}

@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: ose:selfservice
+rules:
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - policybindings
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - resourcequotas
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - update
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - persistentvolumes
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - list
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - services
+  - endpoints
+  verbs:
+  - create
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
+  - projectrequests
+  verbs:
+  - create

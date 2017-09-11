@@ -5,6 +5,7 @@ import "time"
 type Project struct {
 	Name              string
 	BillingNumber     string
+	IsActive          bool
 	BillingDatapoints []Datapoint
 }
 

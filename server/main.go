@@ -9,9 +9,16 @@ import (
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 	"github.com/oscp/cloud-selfservice-portal/server/ddc"
 	"github.com/oscp/cloud-selfservice-portal/server/openshift"
+	"os"
+	"github.com/oscp/cloud-selfservice-portal/server/billing"
 )
 
 func main() {
+	billing.StartBillingScheduler()
+
+   // Debug
+	os.Exit(0)
+
 	router := gin.New()
 	router.Use(gin.Recovery())
 

@@ -28,69 +28,10 @@ So we built this tool which allows users to do certain things in self service. T
 oc new-project ose-selfservice
 oc create serviceaccount ose-selfservice
 
-# Add a new role to your cluster-policy:
-oc edit clusterPolicy default
+# Add a cluster policy for the portal:
+oc create -f clusterPolicy-selfservice.yml
 
-###
-- name: ose:selfservice
-  role:
-    metadata:
-      creationTimestamp: null
-      name: ose:selfservice
-    rules:
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - policybindings
-      verbs:
-      - get
-      - list
-      - update
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - resourcequotas
-      verbs:
-      - get
-      - list
-      - update
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - namespaces
-      verbs:
-      - get
-      - update
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - serviceaccounts
-      verbs:
-      - create
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - persistentvolumes
-      - persistentvolumeclaims
-      verbs:
-      - create
-      - list
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - services
-      - endpoints
-      verbs:
-      - create
-    - apiGroups: null
-      attributeRestrictions: null
-      resources:
-      - projectrequests
-      verbs:
-      - create
-###
-
-# Add the role to the service-account
+# Add policy to service account
 oc adm policy add-cluster-role-to-user ose:selfservice system:serviceaccount:ose-selfservice:ose-selfservice
 ```
 

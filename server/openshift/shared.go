@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	genericAPIError    = "Fehler beim Aufruf der OpenShift-API. Bitte erstelle ein Ticket."
+	genericAPIError    = "Fehler beim Aufruf der OpenShift-API. Bitte erstelle ein Ticket"
 	wrongAPIUsageError = "Invalid api call - parameters did not match to method definition"
 )
 
