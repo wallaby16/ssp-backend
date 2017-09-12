@@ -1,12 +1,71 @@
 package billing
 
-import "time"
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"time"
+
+	"github.com/coreos/etcd/client"
+)
+
+const (
+	jsonDecodingError = "Error decoding json from etcd. %v"
+	jsonEncodingError = "Error encoding json to save in etcd. %v"
+	readError         = "Error reading %v from etcd. Msg: %v"
+	saveError         = "Error while saving %v to etcd. Msg: %v"
+)
 
 type Project struct {
 	Name              string
 	BillingNumber     string
 	IsActive          bool
 	BillingDatapoints []Datapoint
+}
+
+func getProject(name string) *Project {
+	data, err := Api.Get(context.Background(), "projects/"+name, nil)
+	if err != nil {
+		if !client.IsKeyNotFound(err) {
+			log.Fatalf(readError, "project", err.Error())
+		}
+	}
+	var p Project
+	err = json.Unmarshal([]byte(data.Node.Value), &p)
+	if err != nil {
+		log.Fatalf(jsonDecodingError, err.Error())
+	}
+	return &p
+}
+
+func getAllProjects() *[]Project {
+	data, err := Api.Get(context.Background(), "projects", nil)
+	if err != nil {
+		if client.IsKeyNotFound(err) {
+			// First run return empty list
+			return &[]Project{}
+		}
+
+		log.Fatalf(readError, "projects", err.Error())
+	}
+
+	var list []Project
+	err = json.Unmarshal([]byte(data.Node.Value), &list)
+	if err != nil {
+		log.Fatalf(jsonDecodingError, err.Error())
+	}
+	return &list
+}
+
+func (p Project) Save() {
+	json, err := json.Marshal(p)
+	if err != nil {
+		log.Fatalf(jsonEncodingError, err.Error())
+	}
+	_, err = Api.Set(context.Background(), "projects/"+p.Name, string(json), nil)
+	if err != nil {
+		log.Fatalf(saveError, "project", err.Error())
+	}
 }
 
 type Datapoint struct {
@@ -25,6 +84,8 @@ type Datapoint struct {
 	SematextMonthlyCost     float64
 }
 
+
+// TODO: WEG?
 type UnitPrices struct {
 	quotaCPU        float64
 	quotaMemory     float64
