@@ -12,8 +12,14 @@ import (
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"strings"
+	"strconv"
 )
 
+const (
+	getQuotasApiError = "Error getting quotas from ose-api: %v"
+	jsonDecodingError = "Error decoding json from ose api: %v"
+)
 func editQuotasHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 
@@ -64,19 +70,50 @@ func validateEditQuotas(username string, project string, cpu string, memory stri
 	return nil
 }
 
+func GetQuotas(project string) (int, int) {
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project+"/resourcequotas", nil)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Fatalf(getQuotasApiError, err.Error())
+	}
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Fatalf(jsonDecodingError, err)
+	}
+
+	firstQuota := json.S("items").Index(0)
+
+	cpu := firstQuota.Path("spec.hard.cpu").String()
+	mem := strings.Replace(firstQuota.Path("spec.hard.memory").String(), "Gi", "", 1)
+
+	cpuInt, err := strconv.Atoi(cpu)
+	if err != nil {
+		log.Fatalf("Error parsing cpu quota. value: %v, err: %v", cpu, err.Error())
+	}
+	memInt, err := strconv.Atoi(mem)
+	if err != nil {
+		log.Fatalf("Error parsing memory quota. value: %v, err: %v", mem, err.Error())
+	}
+
+	return cpuInt, memInt
+}
+
 func updateQuotas(username string, project string, cpu string, memory string) error {
 	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project+"/resourcequotas", nil)
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Println("Error from server: ", err.Error())
+		fmt.Sprintf(getQuotasApiError, err.Error())
 		return errors.New(genericAPIError)
 	}
 	defer resp.Body.Close()
 
 	json, err := gabs.ParseJSONBuffer(resp.Body)
 	if err != nil {
-		log.Println("error decoding json:", err, resp.StatusCode)
+		fmt.Sprintf(jsonDecodingError, err)
 		return errors.New(genericAPIError)
 	}
 

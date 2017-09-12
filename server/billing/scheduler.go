@@ -7,14 +7,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/oscp/cloud-selfservice-portal/server/openshift"
-)
+	"time"
 
-const etcdError = "error accessing etcd db. Msg: "
+	"github.com/oscp/cloud-selfservice-portal/server/openshift"
+	"golang.org/x/tools/go/gcimporter15/testdata"
+)
 
 func StartBillingScheduler() {
 	// Do every hour
 	fetchProjectList()
+
+	getAllMissingDatapoints()
 
 	fetchQuotas()
 	fetchRequests()
@@ -84,10 +87,48 @@ func fetchProjectList() {
 	}
 }
 
-func fetchQuotas() {
+func getLastEntry(dps *[]Datapoint) time.Time {
+	var lastEntry time.Time
+	for _, dp := range *dps {
+		if lastEntry.Before(dp.Time) {
+			lastEntry = dp.Time
+		}
+	}
+
+	return lastEntry
+}
+
+func getAllMissingDatapoints() {
 	// For each project in etcd:
-	// Check last entry, interpolate if necessary
-	// Get current quota, add to etcd
+	projects := getAllProjects()
+	for _, p := range *projects {
+		last := getLastEntry(&p.BillingDatapoints)
+
+		// Get data for the next hour
+		last = last.Add(1 * time.Hour)
+
+		for last.Before(time.Now()) {
+			// Get data for this hour
+			newDatapoint := Datapoint{
+				Time: time.Now(),
+			}
+
+			// Get all relevant data
+			fetchQuotas(p.Name, &newDatapoint)
+
+			// Save the new datapoint
+			p.BillingDatapoints = append(p.BillingDatapoints, newDatapoint);
+			p.Save()
+
+			last = last.Add(1 * time.Hour)
+		}
+	}
+}
+
+func fetchQuotas(projectName string, dp *Datapoint) {
+	cpuQuota, memQuota := openshift.GetQuotas(projectName)
+	dp.QuotaCPU = float64(cpuQuota)
+	dp.QuotaMemory = float64(memQuota)
 }
 
 func fetchRequests() {

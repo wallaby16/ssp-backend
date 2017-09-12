@@ -69,7 +69,7 @@ func (p Project) Save() {
 }
 
 type Datapoint struct {
-	Timestamp               time.Time
+	Time                    time.Time
 	QuotaCPU                float64
 	QuotaMemory             float64
 	RequestedCPU            float64
