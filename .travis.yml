@@ -51,5 +51,6 @@ deploy:
   file:
   - gluster-api.tar.gz
   - self-service-portal.tar.gz
+  skip_cleanup: true
   on:
     tags: true
