@@ -14,11 +14,6 @@ import (
 )
 
 func main() {
-	billing.StartBillingScheduler()
-
-   // Debug
-	os.Exit(0)
-
 	router := gin.New()
 	router.Use(gin.Recovery())
 
