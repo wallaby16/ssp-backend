@@ -74,6 +74,10 @@ func createLvOnPool(size string, mountPoint string, lvName string) error {
 		// Handle Selinux
 		fmt.Sprintf("semanage fcontext -a -t glusterd_brick_t %v/brick", mountPoint),
 		fmt.Sprintf("restorecon -Rv %v/brick", mountPoint),
+
+		// Handle permissions for ID/GID in OSE
+		fmt.Sprintf("chown nfsnobody.nfsnobody %v/brick", mountPoint),
+		fmt.Sprintf("chmod 777 %v/brick", mountPoint),
 	}
 
 	if err := executeCommandsLocally(commands); err != nil {
