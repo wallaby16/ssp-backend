@@ -148,22 +148,24 @@ func createLvOnOtherServers(size string, mountPoint string, lvName string) error
 		return err
 	}
 
-	p := models.CreateLVCommand{
-		LvName:     lvName,
-		MountPoint: mountPoint,
-		Size:       size,
-	}
-	b := new(bytes.Buffer)
-
-	if err = json.NewEncoder(b).Encode(p); err != nil {
-		log.Println("Error encoding json", err.Error())
-		return errors.New(commandExecutionError)
-	}
-
 	// Execute the commands remote via API
 	client := &http.Client{}
 	for _, r := range remotes {
+		p := models.CreateLVCommand{
+			LvName:     lvName,
+			MountPoint: mountPoint,
+			Size:       size,
+		}
+		b := new(bytes.Buffer)
+
+		if err = json.NewEncoder(b).Encode(p); err != nil {
+			log.Println("Error encoding json", err.Error())
+			return errors.New(commandExecutionError)
+		}
+
 		log.Println("Going to create lv on remote:", r)
+
+		log.Println("sending",b)
 
 		req, _ := http.NewRequest("POST", fmt.Sprintf("http://%v:%v/sec/lv", r, Port), b)
 		req.SetBasicAuth("GLUSTER_API", Secret)
@@ -171,7 +173,7 @@ func createLvOnOtherServers(size string, mountPoint string, lvName string) error
 		resp, err := client.Do(req)
 		if err != nil || resp.StatusCode != http.StatusOK {
 			if resp != nil {
-				log.Println("Remote did not respond with OK", resp.StatusCode)
+				fmt.Sprintf("Remote %v did not respond with OK. StatusCode: %v", r, resp.StatusCode)
 			} else {
 				log.Println("Connection to remote not possible", r, err.Error())
 			}
