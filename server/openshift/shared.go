@@ -24,6 +24,7 @@ const (
 func RegisterRoutes(r *gin.RouterGroup) {
 	// OpenShift
 	r.POST("/ose/project", newProjectHandler)
+	r.GET("/ose/project/:project/admins", getProjectAdminsHandler)
 	r.POST("/ose/testproject", newTestProjectHandler)
 	r.POST("/ose/serviceaccount", newServiceAccountHandler)
 	r.GET("/ose/billing/:project", getBillingHandler)
@@ -36,37 +37,84 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/gluster/volume/grow", growVolumeHandler)
 }
 
-func checkAdminPermissions(username string, project string) error {
+func getProjectAdminsAndOperators(project string) ([]string, []string, error) {
 	policyBindings, err := getPolicyBindings(project)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	children, err := policyBindings.S("roleBindings").Children()
+	if err != nil {
+		log.Println("Unable to parse roleBindings", err.Error())
+		return nil, nil, errors.New(genericAPIError)
+	}
+
+	admins := []string{}
+	hasOperatorGroup := false
+	for _, v := range children {
+		if v.Path("name").Data().(string) == "admin" {
+			groups, err := v.Path("roleBinding.groupNames").Children()
+			if err == nil {
+				for _, g := range groups {
+					if strings.ToLower(g.Data().(string)) == "operator" {
+						hasOperatorGroup = true
+					}
+				}
+			}
+			usernames, err := v.Path("roleBinding.userNames").Children()
+			if err != nil {
+				log.Println("Unable to parse roleBinding", err.Error())
+				return nil, nil, errors.New(genericAPIError)
+			}
+			for _, u := range usernames {
+				admins = append(admins, strings.ToLower(u.Data().(string)))
+			}
+		}
+	}
+
+	operators := []string{}
+	if hasOperatorGroup {
+		// Going to add the operator group to the admins
+		json, err := getOperatorGroup()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		users, err := json.Path("users").Children()
+		if err != nil {
+			log.Println("Could not parse operator group:", json, err.Error())
+			return nil, nil, errors.New(genericAPIError)
+		}
+
+		for _, u := range users {
+			operators = append(operators, strings.ToLower(u.Data().(string)))
+		}
+	}
+
+	return admins, operators, nil
+}
+
+func checkAdminPermissions(username string, project string) error {
+	// Check if user has admin-access
+	hasAccess := false
+	admins, operators, err := getProjectAdminsAndOperators(project)
 	if err != nil {
 		return err
 	}
 
-	// Check if user has admin-access
-	hasAccess := false
-	admins := ""
-	children, err := policyBindings.S("roleBindings").Children()
-	if err != nil {
-		log.Println("Unable to parse roleBindings", err.Error())
-		return errors.New(genericAPIError)
-	}
-	for _, v := range children {
-		if v.Path("name").Data().(string) == "admin" {
-			usernames, err := v.Path("roleBinding.userNames").Children()
-			if err != nil {
-				log.Println("Unable to parse roleBinding", err.Error())
-				return errors.New(genericAPIError)
-			}
-			for _, u := range usernames {
-				if strings.ToLower(u.Data().(string)) == strings.ToLower(username) {
-					hasAccess = true
-				}
+	username = strings.ToLower(username)
 
-				if len(admins) != 0 {
-					admins += ", "
-				}
-				admins += u.Data().(string)
-			}
+	// Access for admins
+	for _, a := range admins {
+		if username == a {
+			hasAccess = true
+		}
+	}
+
+	// Access for operators
+	for _, o := range operators {
+		if username == o {
+			hasAccess = true
 		}
 	}
 
@@ -74,7 +122,27 @@ func checkAdminPermissions(username string, project string) error {
 		return nil
 	}
 
-	return fmt.Errorf("Du hast keine Admin Rechte auf dem Projekt. Bestehende Admins sind folgende Benutzer: %v", admins)
+	return fmt.Errorf("Du hast keine Admin Rechte auf dem Projekt. Bestehende Admins sind folgende Benutzer: %v", strings.Join(admins, ", "))
+}
+
+func getOperatorGroup() (*gabs.Container, error) {
+	client, req := getOseHTTPClient("GET", "oapi/v1/groups/operator", nil)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from OpenShift API: ", err.Error())
+		return nil, errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error parsing body of response:", err)
+		return nil, errors.New(genericAPIError)
+	}
+
+	return json, nil
 }
 
 func getPolicyBindings(project string) (*gabs.Container, error) {
@@ -82,7 +150,7 @@ func getPolicyBindings(project string) (*gabs.Container, error) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Println("Error from server: ", err.Error())
+		log.Println("Error from OpenShift API: ", err.Error())
 		return nil, errors.New(genericAPIError)
 	}
 

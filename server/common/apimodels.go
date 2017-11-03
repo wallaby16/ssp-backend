@@ -56,6 +56,10 @@ type ApiResponse struct {
 	Message string `json:"message"`
 }
 
+type AdminList struct {
+	Admins []string `json:"admins"`
+}
+
 type DDCBilling struct {
 	Rows []DDCBillingRow `json:"rows"`
 	CSV  string `json:"csv"`

@@ -19,6 +19,9 @@ const routes = [
     path: '/ose/newproject', component: LocalComponents.NewProject
   },
   {
+    path: '/ose/adminlist', component: LocalComponents.AdminList
+  },
+  {
     path: '/ose/newserviceaccount', component: LocalComponents.NewServiceAccount
   },
   {

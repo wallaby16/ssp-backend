@@ -51,6 +51,12 @@ rules:
 - apiGroups: null
   attributeRestrictions: null
   resources:
+  - groups
+  verbs:
+  - get
+- apiGroups: null
+  attributeRestrictions: null
+  resources:
   - projectrequests
   verbs:
   - create

@@ -85,6 +85,21 @@ func newTestProjectHandler(c *gin.Context) {
 	}
 }
 
+func getProjectAdminsHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	project := c.Param("project")
+
+	log.Printf("%v has queried all the admins of project %v", username, project)
+
+	if admins, _, err := getProjectAdminsAndOperators(project); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+	} else {
+		c.JSON(http.StatusOK, common.AdminList{
+			Admins: admins,
+		})
+	}
+}
+
 func getBillingHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 	project := c.Param("project")

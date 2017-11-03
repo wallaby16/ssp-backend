@@ -9,6 +9,7 @@ import Notification from './components/shared/Notification.vue';
 import EditQuota from './components/ose/EditQuota.vue';
 import NewProject from './components/ose/NewProject.vue';
 import NewTestProject from './components/ose/NewTestProject.vue';
+import AdminList from './components/ose/AdminList.vue';
 import UpdateBilling from './components/ose/UpdateBilling.vue';
 import NewServiceAccount from './components/ose/NewServiceAccount.vue';
 // Gluster-Components
@@ -31,6 +32,7 @@ export const LocalComponents = {
   Home,
   EditQuota,
   NewProject,
+  AdminList,
   NewTestProject,
   UpdateBilling,
   NewServiceAccount,
