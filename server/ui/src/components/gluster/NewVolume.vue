@@ -25,13 +25,13 @@
                      :type="errors.has('Grösse') ? 'is-danger' : ''"
                      :message="errors.first('Grösse')">
                 <b-input v-model.trim="size"
-                         placeholder="100M"
+                         placeholder="500M"
                          name="Grösse"
                          v-validate="'required'">
                 </b-input>
             </b-field>
             <b-message type="is-info">
-                Grösse angeben mit Einheit (M/G) z.B. 100M oder 5G. Ab 1024M muss G verwendet werden
+                Mindestgrösse ist 500MB. Grösse angeben mit Einheit (M/G) z.B. 500M oder 5G. Ab 1024M muss G verwendet werden
             </b-message>
 
             <b-field label="Name des Persistent Volume Claims"

@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	wrongSizeError = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 100M). Maximale erlaubte Grössen sind: M: %v, G: %v"
+	wrongSizeFormatError = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 500M)."
+	wrongSizeLimitError = "Grösse nicht erlaubt. Mindestgrösse: 500M. Maximale Grössen sind: M: %v, G: %v"
 )
 
 func newVolumeHandler(c *gin.Context) {
@@ -146,6 +147,7 @@ func validateFixVolume(project string, username string) error {
 }
 
 func validateMaxSize(size string) error {
+	minMB := 500
 	maxMB := 1024
 	maxGB := os.Getenv("MAX_VOLUME_GB")
 
@@ -158,9 +160,12 @@ func validateMaxSize(size string) error {
 	if strings.HasSuffix(size, "M") {
 		sizeInt, err := strconv.Atoi(strings.Replace(size, "M", "", 1))
 		if err != nil {
-			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
+			return errors.New(wrongSizeFormatError)
 		}
 
+		if sizeInt < minMB {
+			return fmt.Errorf(wrongSizeLimitError, maxMB, maxGB)
+		}
 		if sizeInt > maxMB {
 			return errors.New("Deine Angaben sind zu gross für 'M'. Bitte gib die Grösse als Ganzzahl in 'G' an")
 		}
@@ -168,11 +173,11 @@ func validateMaxSize(size string) error {
 	if strings.HasSuffix(size, "G") {
 		sizeInt, err := strconv.Atoi(strings.Replace(size, "G", "", 1))
 		if err != nil {
-			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
+			return errors.New(wrongSizeFormatError)
 		}
 
 		if sizeInt > maxGBInt {
-			return fmt.Errorf(wrongSizeError, maxMB, maxGB)
+			return fmt.Errorf(wrongSizeLimitError, maxMB, maxGB)
 		}
 	}
 
