@@ -63,7 +63,8 @@
               this.$store.commit('setUser', {
                 user: {
                   name: userData.id,
-                  token: res.body.token
+                  token: res.body.token,
+                  exp: userData.exp
                 }
               });
 

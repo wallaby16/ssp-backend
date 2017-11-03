@@ -45,11 +45,22 @@ router.beforeEach((to, from, next) => {
   store.commit('setNotification', {notification: {}});
 
   // Auth-Protection
-  if (to.path !== '/login' && !store.state.user) {
+  if (to.path == '/login') {
+    // Login page is always allowed
+    next();
+  }
+  if (!store.state.user) {
     console.error('Not yet logged in, navigating to login');
     next({path: '/login'});
   } else {
-    next();
+    // Check if token is still valid
+    if (store.state.user && store.state.user.exp < Date.now() / 1000) {
+      console.error('Token is no longer valid, navigating to login');
+      next({path: '/login'});
+    } else {
+      // Everything fine, go to page
+      next();
+    }
   }
 });
 
