@@ -9,7 +9,26 @@ func init() {
 func TestGetVolumeUsage(t *testing.T) {
 	output = []string{"    49664    2864 /dev/mapper/vg_mylv_project_pv1"}
 
-	volInfo, _ := getVolumeUsage("pv1")
+	volInfo, _ := getVolumeUsage("gl-project-pv1")
+
+	equals(t, 49664, volInfo.TotalKiloBytes)
+	equals(t, 2864, volInfo.UsedKiloBytes)
+}
+
+
+func TestGetVolumeUsage_LongProject(t *testing.T) {
+	output = []string{"    49664    2864 /dev/mapper/vg_mylv_project--long_pv1"}
+
+	volInfo, _ := getVolumeUsage("gl-project-long-pv1")
+
+	equals(t, 49664, volInfo.TotalKiloBytes)
+	equals(t, 2864, volInfo.UsedKiloBytes)
+}
+
+func TestGetVolumeUsage_LongProjectHighNumber(t *testing.T) {
+	output = []string{"    49664    2864 /dev/mapper/vg_mylv_project--very--very--long_pv20"}
+
+	volInfo, _ := getVolumeUsage("gl-project-very-very-long-pv20")
 
 	equals(t, 49664, volInfo.TotalKiloBytes)
 	equals(t, 2864, volInfo.UsedKiloBytes)
@@ -18,13 +37,13 @@ func TestGetVolumeUsage(t *testing.T) {
 func TestCheckVolumeUsage_OK(t *testing.T) {
 	output = []string{"    49664    2864 /dev/mapper/vg_mylv_project_pv1"}
 
-	err := checkVolumeUsage("pv1", "20")
+	err := checkVolumeUsage("gl-project-pv1", "20")
 	ok(t, err)
 }
 
 func TestCheckVolumeUsage_Error(t *testing.T) {
 	output = []string{"    49664    49555 /dev/mapper/vg_mylv_project_pv1"}
 
-	err := checkVolumeUsage("pv1", "20")
+	err := checkVolumeUsage("gl-project-pv1", "20")
 	assert(t, err != nil, "Should return error as bigger than threshold")
 }

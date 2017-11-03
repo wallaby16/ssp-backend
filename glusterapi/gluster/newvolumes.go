@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
+	"regexp"
 )
 
 const (
@@ -27,7 +28,7 @@ func createVolume(project string, size string) (string, error) {
 		return "", err
 	}
 
-	pvNumber, err := getExistingLvForProject(project)
+	pvNumber, err := getNextVolumeNrForProject(project)
 	if err != nil {
 		return "", err
 	}
@@ -118,14 +119,44 @@ func validateSizeInput(size string) error {
 	return fmt.Errorf(suffixWrongError, size)
 }
 
-func getExistingLvForProject(project string) (int, error) {
+func getNextVolumeNrForProject(project string) (int, error) {
 	out, err := ExecRunner.Run("bash", "-c", "lvs -o lv_name")
 	if err != nil {
 		log.Printf("Could not count existing lvs for a project: %v. Error: %v", project, err.Error())
 		return -1, errors.New(commandExecutionError)
 	}
 
-	return strings.Count(string(out), "lv_"+project) + 1, nil
+	// First volume for project
+	if strings.Count(string(out), "lv_"+ project) == 0 {
+		return 1, nil
+	}
+
+	// Get the current highest volume number
+	lines := strings.Split(string(out), "\n")
+	maxNr := 0
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if strings.Contains(l, "lv_"+project) {
+			num := regexp.MustCompile("(\\d+)")
+			nums := num.FindAllString(l, -1)
+			nr, err := strconv.Atoi(nums[0])
+			if err != nil {
+				log.Printf("Could not parse number out of: %v", l)
+				return -1, err
+			}
+
+			if nr > maxNr {
+				maxNr = nr
+			}
+		}
+	}
+
+	if maxNr == 0 {
+		log.Printf("Could not parse max number of existing volumes for project %v. Output: %v", project, out)
+		return -1, errors.New(commandExecutionError)
+	}
+
+	return maxNr + 1, nil
 }
 
 func createLvOnAllServers(size string, mountPoint string, lvName string) error {

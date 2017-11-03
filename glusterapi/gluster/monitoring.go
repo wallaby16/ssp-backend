@@ -12,10 +12,22 @@ import (
 )
 
 func getVolumeUsage(pvName string) (*models.VolInfo, error) {
-	// Remove gl_ if necessary
-	pvName = strings.Replace(pvName, "gl_", "", -1)
+	// Input examples
+	// gl-ose-mon-a-pv3 => ose--mon--a_pv3
+	// gl-test-pv10 => test_pv10
 
-	cmd := fmt.Sprintf("df --output=size,used,source | grep %v", pvName)
+	// LVS example output
+	// /dev/mapper/vg_slow-lv_test_pv5
+	// /dev/mapper/vg_san-lv_ose--mon--a_pv2
+
+	// Remove gl_ if necessary
+	pvName = strings.Replace(pvName, "gl-", "", -1)
+
+	// Find project name
+	parts := strings.Split(pvName, "-pv")
+
+	// Replace - with -- within project name
+	cmd := fmt.Sprintf("df --output=size,used,source | grep lv_%v_pv%v", strings.Replace(parts[0], "-", "--", -1), parts[1])
 
 	out, err := ExecRunner.Run("bash", "-c", cmd)
 	if err != nil {
@@ -35,7 +47,7 @@ func getVolumeUsage(pvName string) (*models.VolInfo, error) {
 }
 
 func parseOutput(stdOut string) (*models.VolInfo, error) {
-	// Examples
+	// Example output
 	// 5472   118048 /dev/mapper/vg_slow-lv_test_pv5
 	num := regexp.MustCompile("(\\d+)")
 	nums := num.FindAllString(stdOut, -1)

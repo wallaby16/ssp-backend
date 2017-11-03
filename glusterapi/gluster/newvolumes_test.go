@@ -10,6 +10,32 @@ func init() {
 	ExecRunner = TestRunner{}
 }
 
+func TestGetNextVolumeNrForProject_FirstVolume(t *testing.T) {
+	output = []string{
+		"lv_another_pv1",
+	}
+	nr, _ := getNextVolumeNrForProject("myproject")
+	assert(t, nr == 1, "First volume should return lv number 1")
+}
+
+func TestGetNextVolumeNrForProject_SecondVolume(t *testing.T) {
+	output = []string{
+		"lv_myproject_pv1",
+	}
+	nr, _ := getNextVolumeNrForProject("myproject")
+	assert(t, nr == 2, "First volume should return lv number 2")
+}
+
+func TestGetNextVolumeNrForProject_AfterDeletion(t *testing.T) {
+	output = []string{
+		`lv_myproject_pv1
+		lv_myproject_pv27
+		lv_myproject_pv3`,
+	}
+	nr, _ := getNextVolumeNrForProject("myproject")
+	equals(t, 28, nr)
+}
+
 func TestCreateVolume_Empty(t *testing.T) {
 	_, err := createVolume("", "")
 	assert(t, err != nil, "createVolume should throw error if called empty")
