@@ -56,26 +56,49 @@ type ApiResponse struct {
 	Message string `json:"message"`
 }
 
+type BucketListResponse struct {
+	Buckets []string `json:"buckets"`
+}
+
+type S3CredentialsResponse struct {
+	Username    string `json:"username"`
+	AccessKeyID string `json:"accesskeyid"`
+	SecretKey   string `json:"secretkey"`
+}
+
 type AdminList struct {
 	Admins []string `json:"admins"`
 }
 
 type DDCBilling struct {
 	Rows []DDCBillingRow `json:"rows"`
-	CSV  string `json:"csv"`
+	CSV  string          `json:"csv"`
 }
 
 type DDCBillingRow struct {
-	Sender              string `json:"sender"`
-	Art                 string `json:"art"`
-	Project             string `json:"project"`
-	Host                string `json:"host"`
-	Backup              bool   `json:"backup"`
-	ReceptionAssignment string `json:"receptionAssignment"`
-	OrderReception      string `json:"orderReception"`
-	PspElement          string `json:"pspElement"`
+	Sender              string  `json:"sender"`
+	Art                 string  `json:"art"`
+	Project             string  `json:"project"`
+	Host                string  `json:"host"`
+	Backup              bool    `json:"backup"`
+	ReceptionAssignment string  `json:"receptionAssignment"`
+	OrderReception      string  `json:"orderReception"`
+	PspElement          string  `json:"pspElement"`
 	TotalCPU            float64 `json:"totalCpu"`
 	TotalMemory         float64 `json:"totalMemory"`
 	TotalStorage        float64 `json:"totalStorage"`
 	Total               float64 `json:"total"`
+}
+
+type NewS3BucketCommand struct {
+	ProjectName
+	BucketName string `json:"bucketname"`
+	Billing    string `json:"billing"`
+	Stage      string `json:"stage"`
+}
+
+type NewS3UserCommand struct {
+	ProjectName
+	BucketName string `json:"bucketname"`
+	UserName   string `json:"username"`
 }
