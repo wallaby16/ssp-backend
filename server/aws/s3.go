@@ -9,8 +9,9 @@ import (
 	"regexp"
 	"strings"
 
+	"strconv"
+
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gin-gonic/gin"
@@ -18,102 +19,18 @@ import (
 )
 
 const (
-	genericAPIError    = "Fehler beim Aufruf der S3-API. Bitte erstelle ein Ticket"
-	genericListError   = "Ressourcen können nicht aufgelistet werden. Bitte erstelle ein Ticket"
 	genericCreateError = "Erstellung des Buckets fehlgeschlagen. Bitte erstelle ein Ticket"
-	wrongAPIUsageError = "Invalid API call - parameters did not match to method definition"
+	genericListError   = "Ressourcen können nicht aufgelistet werden. Bitte erstelle ein Ticket"
 )
 
 // RegisterRoutes registers the routes for S3
 func RegisterRoutes(r *gin.RouterGroup) {
-	r.GET("/aws/s3/list", listS3BucketsHandler)
-	r.POST("/aws/s3/new", newS3BucketHandler)
-	r.POST("/aws/s3/newreaduser", newS3ReadUserHandler)
-	r.POST("/aws/s3/newwrite", newS3WriteUserHandler)
+	r.GET("/aws/s3", listS3BucketsHandler)
+	r.POST("/aws/s3", newS3BucketHandler)
+	r.POST("/aws/s3/:bucketname/user", newS3UserHandler)
 }
 
-func newS3BucketHandler(c *gin.Context) {
-	username := common.GetUserName(c)
-
-	var data common.NewS3BucketCommand
-	if c.BindJSON(&data) == nil {
-
-		newbucketname := generateS3Bucketname(data.BucketName, data.Stage)
-		if err := validateNewS3Bucket(username, data.Project, newbucketname, data.Billing, data.Stage); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-			return
-		}
-
-		log.Print("Creating new bucket " + newbucketname + " for " + username)
-		if err := createNewS3Bucket(username, data.Project, newbucketname, data.Billing, data.Stage); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-		} else {
-			c.JSON(http.StatusOK, common.ApiResponse{
-				Message: "Es wurde ein neuer S3 Bucket erstellt: " + newbucketname,
-			})
-		}
-	} else {
-		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
-	}
-}
-
-func listS3BucketsHandler(c *gin.Context) {
-	username := common.GetUserName(c)
-
-	log.Print(username + " lists S3 buckets")
-	myBuckets, _ := listS3BucketByUsername(username)
-
-	c.JSON(http.StatusOK, myBuckets)
-}
-
-func newS3ReadUserHandler(c *gin.Context) {
-	username := common.GetUserName(c)
-
-	var data common.NewS3UserCommand
-	if c.BindJSON(&data) == nil {
-
-		if err := validateNewS3User(username, data.BucketName, data.UserName); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-			return
-		}
-
-		log.Print(username + " creates a new read user (" + data.UserName + ") for " + data.BucketName)
-		credentials, err := createNewS3ReadUser(data.BucketName, data.UserName)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-		} else {
-			c.JSON(http.StatusOK, credentials)
-		}
-	} else {
-		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
-	}
-}
-
-func newS3WriteUserHandler(c *gin.Context) {
-	username := common.GetUserName(c)
-
-	var data common.NewS3UserCommand
-	if c.BindJSON(&data) == nil {
-
-		if err := validateNewS3User(username, data.BucketName, data.UserName); err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-			return
-		}
-
-		log.Print(username + " creates a new read/write user (" + data.UserName + ") for " + data.BucketName)
-		credentials, err := createNewS3WriteUser(data.BucketName, data.UserName)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
-		} else {
-			c.JSON(http.StatusOK, credentials)
-		}
-	} else {
-		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
-	}
-}
-
-func validateNewS3Bucket(username string, projectname string, bucketname string, billing string, stage string) error {
-
+func validateNewS3Bucket(projectname string, bucketname string, billing string, stage string) error {
 	if len(stage) == 0 {
 		return errors.New("Umgebung muss definiert werden")
 	}
@@ -136,15 +53,11 @@ func validateNewS3Bucket(username string, projectname string, bucketname string,
 		return errors.New("Bucketname kann nur alphanumerische Zeichen und Bindestriche enthalten")
 	}
 
-	if stage != "dev" && stage != "test" && stage != "int" && stage != "prod" {
-		return errors.New("Unbekannte Umgebung: " + stage)
+	svc, err := GetS3Client(stage)
+	if err != nil {
+		return err
 	}
 
-	// Check if bucket already exists
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
-	svc := s3.New(sess)
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
 		log.Print("Error while trying to validate new bucket (ListBucket call): " + err.Error())
@@ -162,14 +75,80 @@ func validateNewS3Bucket(username string, projectname string, bucketname string,
 	return nil
 }
 
+func listS3BucketsHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+
+	log.Print(username + " lists S3 buckets")
+
+	myBuckets, err := listS3BucketByUsername(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+	} else {
+		c.JSON(http.StatusOK, myBuckets)
+	}
+}
+
+func newS3BucketHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+
+	var data common.NewS3BucketCommand
+	if c.BindJSON(&data) == nil {
+		newbucketname, err := generateS3Bucketname(data.BucketName, data.Stage)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		if err := validateNewS3Bucket(data.Project, newbucketname, data.Billing, data.Stage); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		log.Print("Creating new bucket " + newbucketname + " for " + username)
+
+		if err := createNewS3Bucket(username, data.Project, newbucketname, data.Billing, data.Stage); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Es wurde ein neuer S3 Bucket erstellt: " + newbucketname +
+					". Du kannst nun über den anderen Menüpunkt Benutzer für diesen Bucket erstellen",
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
+func newS3UserHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	bucketName := c.Param("bucketname")
+
+	var data common.NewS3UserCommand
+	if c.BindJSON(&data) == nil {
+
+		if err := validateNewS3User(username, bucketName, data.UserName, data.Stage); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		log.Print(username + " creates a new user (" + data.UserName + ") for " + bucketName + " , readonly: " + strconv.FormatBool(data.IsReadonly))
+
+		credentials, err := createNewS3User(bucketName, data.UserName, data.Stage, data.IsReadonly)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, credentials)
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
 func createNewS3Bucket(username string, projectname string, bucketname string, billing string, stage string) error {
-
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
-
-	// Create S3 service client
-	svc := s3.New(sess)
+	svc, err := GetS3Client(stage)
+	if err != nil {
+		return err
+	}
 
 	_, err = svc.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(bucketname),
@@ -205,14 +184,18 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 		return errors.New(genericCreateError)
 	}
 
-	//log.Print("Creating IAM policies for bucket " + bucketname + "...")
+	log.Print("Creating IAM policies for bucket " + bucketname + "...")
+
 	// Create a IAM service client.
-	iamSvc := iam.New(sess)
+	iamSvc, err := GetIAMClient(stage)
+	if err != nil {
+		return err
+	}
 
 	readPolicy := PolicyDocument{
 		Version: "2012-10-17",
 		Statement: []StatementEntry{
-			StatementEntry{
+			{
 				Effect: "Allow",
 				Action: []string{
 					"s3:Get*",  // Allow Get commands
@@ -220,7 +203,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 				},
 				Resource: "arn:aws:s3:::" + bucketname,
 			},
-			StatementEntry{
+			{
 				Effect: "Allow",
 				Action: []string{
 					"s3:Get*",  // Allow Get commands
@@ -234,7 +217,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	writePolicy := PolicyDocument{
 		Version: "2012-10-17",
 		Statement: []StatementEntry{
-			StatementEntry{
+			{
 				Effect: "Allow",
 				Action: []string{
 					"s3:Get*",    // Allow Get commands
@@ -244,7 +227,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 				},
 				Resource: "arn:aws:s3:::" + bucketname,
 			},
-			StatementEntry{
+			{
 				Effect: "Allow",
 				Action: []string{
 					"s3:Get*",    // Allow Get commands
@@ -266,7 +249,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 
 	_, err = iamSvc.CreatePolicy(&iam.CreatePolicyInput{
 		PolicyDocument: aws.String(string(b)),
-		PolicyName:     aws.String(bucketname + "-BucketReadPolicy"),
+		PolicyName:     aws.String(bucketname + bucketReadPolicy),
 	})
 	if err != nil {
 		log.Print("Error CreatePolicy for BucketReadPolicy failed: " + err.Error())
@@ -282,7 +265,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 
 	_, err = iamSvc.CreatePolicy(&iam.CreatePolicyInput{
 		PolicyDocument: aws.String(string(c)),
-		PolicyName:     aws.String(bucketname + "-BucketWritePolicy"),
+		PolicyName:     aws.String(bucketname + bucketWritePolicy),
 	})
 	if err != nil {
 		log.Print("Error CreatePolicy for BucketWritePolicy failed: " + err.Error())
@@ -290,38 +273,61 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	}
 
 	log.Print("Bucket " + bucketname + " and IAM policies successfully created")
+
 	return nil
 }
 
-func generateS3Bucketname(bucketname string, stage string) string {
+func generateS3Bucketname(bucketname string, stage string) (string, error) {
 	// Generate bucketname: <prefix>-<bucketname>-<stage_suffix>
 	bucketPrefix := os.Getenv("AWS_S3_BUCKET_PREFIX")
-	stageSuffix := "nonprod"
-	if stage == "prod" {
-		stageSuffix = "prod"
+
+	account, err := getAccountForStage(stage)
+	if err != nil {
+		return "", err
 	}
-	return strings.ToLower(bucketPrefix + bucketname + "-" + stageSuffix)
+
+	return strings.ToLower(bucketPrefix + "-" + bucketname + "-" + account), nil
 }
 
-func listS3BucketByUsername(username string) (common.BucketListResponse, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
+func listS3BucketByUsername(username string) (*common.BucketListResponse, error) {
+	result := common.BucketListResponse{
+		Buckets: []common.Bucket{},
+	}
+	nonProdBuckets, err := listS3BucketByUsernameForAccount(username, accountNonProd)
+	if err != nil {
+		return nil, err
+	}
+	prodBuckets, err := listS3BucketByUsernameForAccount(username, accountProd)
+	if err != nil {
+		return nil, err
+	}
 
-	// Create S3 service client
-	svc := s3.New(sess)
+	result.Buckets = append(result.Buckets, nonProdBuckets...)
+	result.Buckets = append(result.Buckets, prodBuckets...)
+
+	return &result, nil
+}
+
+func listS3BucketByUsernameForAccount(username string, account string) ([]common.Bucket, error) {
+	var stage string
+	if account == accountProd {
+		stage = stageProd
+	} else {
+		stage = stageDev
+	}
+
+	svc, err := GetS3Client(stage)
+	if err != nil {
+		return nil, err
+	}
 
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
 		log.Print("Unable to list buckets (ListBuckets API call): " + err.Error())
-		return common.BucketListResponse{}, errors.New(genericListError)
+		return nil, errors.New(genericListError)
 	}
 
-	// Return list
-	responseList := common.BucketListResponse{
-		Buckets: []string{},
-	}
-
+	buckets := []common.Bucket{}
 	for _, b := range result.Buckets {
 		// Get bucket tags
 		taggingParams := &s3.GetBucketTaggingInput{
@@ -330,15 +336,15 @@ func listS3BucketByUsername(username string) (common.BucketListResponse, error) 
 		result, err := svc.GetBucketTagging(taggingParams)
 		if err != nil {
 			log.Print("Unable to get tags for bucket, username " + username + ": " + err.Error())
-			return common.BucketListResponse{}, errors.New(genericListError)
+			return nil, errors.New(genericListError)
 		}
 
 		// Get list of buckets where "Creator" equals username and return only those
 		for _, tag := range result.TagSet {
-			if *tag.Key == "Creator" && *tag.Value == username {
-				responseList.Buckets = append(responseList.Buckets, *b.Name)
+			if *tag.Key == "Creator" && strings.ToLower(*tag.Value) == strings.ToLower(username) {
+				buckets = append(buckets, common.Bucket{Name: *b.Name, Account: account})
 			}
 		}
 	}
-	return responseList, nil
+	return buckets, nil
 }

@@ -57,7 +57,12 @@ type ApiResponse struct {
 }
 
 type BucketListResponse struct {
-	Buckets []string `json:"buckets"`
+	Buckets []Bucket `json:"buckets"`
+}
+
+type Bucket struct {
+	Name    string `json:"name"`
+	Account string `json:"account"`
 }
 
 type S3CredentialsResponse struct {
@@ -99,6 +104,7 @@ type NewS3BucketCommand struct {
 
 type NewS3UserCommand struct {
 	ProjectName
-	BucketName string `json:"bucketname"`
 	UserName   string `json:"username"`
+	Stage      string `json:"stage"`
+	IsReadonly bool   `json:"isReadonly"`
 }

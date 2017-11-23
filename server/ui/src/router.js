@@ -38,6 +38,12 @@ const routes = [
   },
   {
     path: '/ddc/billing', component: LocalComponents.DDCBilling
+  },
+  {
+    path: '/aws/lists3buckets', component: LocalComponents.ListS3Buckets
+  },
+  {
+    path: '/aws/news3bucket', component: LocalComponents.NewS3Bucket
   }
 ];
 

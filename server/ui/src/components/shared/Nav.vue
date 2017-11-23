@@ -47,6 +47,15 @@
                         <router-link to="/ddc/billing" class="navbar-item">DDC Kostenverrechnung</router-link>
                     </div>
                 </div>
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">
+                        AWS
+                    </a>
+                    <div class="navbar-dropdown">
+                        <router-link to="/aws/lists3buckets" class="navbar-item">AWS S3 Buckets anzeigen</router-link>
+                        <router-link to="/aws/news3bucket" class="navbar-item">AWS S3 Bucket erstellen</router-link>
+                    </div>
+                </div>
             </div>
 
             <div class="navbar-end">

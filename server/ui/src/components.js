@@ -18,6 +18,9 @@ import NewVolume from './components/gluster/NewVolume.vue';
 import GrowVolume from './components/gluster/GrowVolume.vue';
 // DDC-Components
 import DDCBilling from './components/ddc/Billing.vue';
+// AWS Components
+import ListS3Buckets from './components/aws/ListS3Buckets.vue';
+import NewS3Bucket from './components/aws/NewS3Bucket.vue';
 
 Vue.component('login', Login);
 Vue.component('navbar', Nav);
@@ -39,7 +42,9 @@ export const LocalComponents = {
   FixVolume,
   NewVolume,
   GrowVolume,
-  DDCBilling
+  DDCBilling,
+  ListS3Buckets,
+  NewS3Bucket
 }
 
 

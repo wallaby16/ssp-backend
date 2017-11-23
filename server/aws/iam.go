@@ -3,12 +3,10 @@ package aws
 import (
 	"errors"
 	"log"
-	"os"
 	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 
 	"github.com/oscp/cloud-selfservice-portal/server/common"
@@ -31,32 +29,30 @@ type StatementEntry struct {
 	Resource string
 }
 
-func validateNewS3User(username string, bucketname string, newuser string) error {
-
+func validateNewS3User(username string, bucketname string, newuser string, stage string) error {
 	if len(username) == 0 {
-		return errors.New("Username must be specified")
+		return errors.New("Benutzername muss angegeben werden")
 	}
 	if len(bucketname) == 0 {
-		return errors.New("Bucket name must be specified")
+		return errors.New("Bucket Name muss angegeben werden")
 	}
 	if len(newuser) == 0 {
-		return errors.New("Name of new user must be specified")
+		return errors.New("Bucket Benutzername muss angegeben werden")
 	}
 
 	if (len(newuser) + len(bucketname)) > 63 {
 		// http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-limits.html
 		return errors.New("Generierter Benutzername '" + bucketname + "-" + newuser + "' ist zu lang")
 	}
-	var validName = regexp.MustCompile(`^[a-zA-Z0-9\-]+$`).MatchString
+	validName := regexp.MustCompile(`^[a-zA-Z0-9\-]+$`).MatchString
 	if !validName(bucketname) {
 		return errors.New("Benutzername kann nur alphanumerische Zeichen und Bindestriche enthalten")
 	}
 
-	// Check if user already exists
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
-	svc := iam.New(sess)
+	svc, err := GetIAMClient(stage)
+	if err != nil {
+		return err
+	}
 	result, err := svc.ListUsers(nil)
 	if err != nil {
 		log.Print("Error while trying to create a new user (ListUsers call): " + err.Error())
@@ -65,94 +61,73 @@ func validateNewS3User(username string, bucketname string, newuser string) error
 	// Loop over existing users
 	for _, u := range result.Users {
 		if *u.UserName == newuser {
-			log.Print("Error, user " + newuser + "already exists")
+			log.Printf("Error, user %v already exists", newuser)
 			return errors.New("Fehler: IAM-Benutzer " + newuser + " existiert bereits")
 		}
 	}
 
 	// Make sure the user is allowed to create new IAM users for this bucket
 	myBuckets, _ := listS3BucketByUsername(username)
-	for _, mybucketname := range myBuckets.Buckets {
-		if bucketname == mybucketname {
+	for _, mybucket := range myBuckets.Buckets {
+		if bucketname == mybucket.Name {
 			// Everything OK
 			return nil
 		}
 	}
-	return errors.New("User " + username + " does not own bucket " + bucketname)
+	return errors.New("Es gibt diesen Bucket " + bucketname + " nicht. Oder du darfst für den Bucket keine Benutzer erstellen")
 }
 
-func createNewS3ReadUser(bucketname string, s3username string) (common.S3CredentialsResponse, error) {
+func createNewS3User(bucketname string, s3username string, stage string, isReadonly bool) (*common.S3CredentialsResponse, error) {
 	generatedName := bucketname + "-" + s3username
-	cred, err := createNewS3User(generatedName)
+
+	svc, err := GetIAMClient(stage)
 	if err != nil {
-		log.Print("Error while calling createNewS3User: " + err.Error())
-		return cred, errors.New(genericUserCreationError)
+		return nil, err
 	}
-
-	err = attachIAMPolicyToUser(bucketname+"-BucketReadPolicy", generatedName)
-	if err != nil {
-		log.Print("Error while calling attachIAMPolicyToUser: " + err.Error())
-		return cred, errors.New(genericUserCreationError)
-	}
-	return cred, nil
-}
-
-func createNewS3WriteUser(bucketname string, s3username string) (common.S3CredentialsResponse, error) {
-	generatedName := bucketname + "-" + s3username
-	cred, err := createNewS3User(generatedName)
-	if err != nil {
-		log.Print("Error while calling createNewS3User: " + err.Error())
-		return cred, errors.New(genericUserCreationError)
-	}
-
-	err = attachIAMPolicyToUser(bucketname+"-BucketWritePolicy", generatedName)
-	if err != nil {
-		log.Print("Error while calling attachIAMPolicyToUser: " + err.Error())
-		return cred, errors.New(genericUserCreationError)
-	}
-	return cred, nil
-}
-
-func createNewS3User(name string) (common.S3CredentialsResponse, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
-
-	// Create a IAM service client.
-	svc := iam.New(sess)
-
 	_, err = svc.GetUser(&iam.GetUserInput{
-		UserName: aws.String(name),
+		UserName: aws.String(generatedName),
 	})
 
 	var cred common.S3CredentialsResponse
-	if awserr, ok := err.(awserr.Error); ok && awserr.Code() == iam.ErrCodeNoSuchEntityException {
+	if errAws, ok := err.(awserr.Error); ok && errAws.Code() == iam.ErrCodeNoSuchEntityException {
 		_, err := svc.CreateUser(&iam.CreateUserInput{
-			UserName: aws.String(name),
+			UserName: aws.String(generatedName),
 		})
 
 		if err != nil {
-			return cred, errors.New("CreateUser error in createNewS3User: " + err.Error())
+			log.Println("CreateUser error in createNewS3User: " + err.Error())
+			return nil, errors.New(genericUserCreationError)
 		}
 
 		// Create access key
 		result, err := svc.CreateAccessKey(&iam.CreateAccessKeyInput{
-			UserName: aws.String(name),
+			UserName: aws.String(generatedName),
 		})
 		cred.AccessKeyID = *result.AccessKey.AccessKeyId
 		cred.SecretKey = *result.AccessKey.SecretAccessKey
-		return cred, nil
 	}
-	return cred, errors.New("GetUser error: " + err.Error())
+
+	policy := bucketname
+	if isReadonly {
+		policy += bucketReadPolicy
+	} else {
+		policy += bucketWritePolicy
+	}
+
+	err = attachIAMPolicyToUser(policy, generatedName, stage)
+	if err != nil {
+		log.Print("Error while calling attachIAMPolicyToUser: " + err.Error())
+		return &cred, errors.New(genericUserCreationError)
+	}
+
+	return &cred, nil
 }
 
-func attachIAMPolicyToUser(policyName string, username string) error {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_S3_REGION"))},
-	)
-
-	// Create a IAM service client.
-	svc := iam.New(sess)
+func attachIAMPolicyToUser(policyName string, username string, stage string) error {
+	svc, err := GetIAMClient(stage)
+	if err != nil {
+		return err
+	}
 
 	// First, figure out the AWS account ID
 	result, err := svc.GetUser(nil)
@@ -172,5 +147,6 @@ func attachIAMPolicyToUser(policyName string, username string) error {
 	if err != nil {
 		return errors.New("AttachUserPolicy error: " + err.Error())
 	}
+
 	return nil
 }

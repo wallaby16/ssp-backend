@@ -14,6 +14,7 @@ install:
 - go get gopkg.in/dgrijalva/jwt-go.v3
 - go get gopkg.in/jarcoal/httpmock.v1
 - go get github.com/coreos/etcd/client
+- go get github.com/aws/aws-sdk-go/aws
 
 script:
 # Copy service files
