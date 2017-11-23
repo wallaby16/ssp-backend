@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/oscp/cloud-selfservice-portal/server/aws"
 	"github.com/oscp/cloud-selfservice-portal/server/common"
 	"github.com/oscp/cloud-selfservice-portal/server/ddc"
 	"github.com/oscp/cloud-selfservice-portal/server/openshift"
@@ -33,6 +34,9 @@ func main() {
 
 		// DDC routes
 		ddc.RegisterRoutes(auth)
+
+		// AWS routes
+		aws.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")

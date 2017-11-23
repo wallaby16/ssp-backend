@@ -56,6 +56,10 @@ GLUSTER\_SECRET|The basic auth password you configured on the gluster api|secret
 GLUSTER\_IPS|IP addresses of the gluster endpoints|192.168.1.1,192.168.1.2
 MAX\_VOLUME\_GB|How many GB storage can a user order|100
 DDC\_API|URL of the DDC Billing API|http://ddc-api.ch
+AWS_ACCESS_KEY_ID|AWS Access Key ID to manage AWS ressources|AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY|AWS Secret Access Key to manage AWS ressources|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_S3_BUCKET_PREFIX|Prefix for all generated S3 buckets|mycompany-
+AWS_S3_REGION|Region for new S3 buckets|eu-central-1
 
 ## The GlusterFS api
 Use/see the service unit file in ./glusterapi/install/
