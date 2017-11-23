@@ -103,8 +103,6 @@ type NewS3BucketCommand struct {
 }
 
 type NewS3UserCommand struct {
-	ProjectName
 	UserName   string `json:"username"`
-	Stage      string `json:"stage"`
 	IsReadonly bool   `json:"isReadonly"`
 }

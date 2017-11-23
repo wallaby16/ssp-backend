@@ -84,11 +84,17 @@ func createNewS3User(bucketname string, s3username string, stage string, isReado
 	if err != nil {
 		return nil, err
 	}
-	_, err = svc.GetUser(&iam.GetUserInput{
+	usr, err := svc.GetUser(&iam.GetUserInput{
 		UserName: aws.String(generatedName),
 	})
 
-	var cred common.S3CredentialsResponse
+	if usr != nil && usr.User != nil {
+		return nil, errors.New("Der Benutzer existiert bereits")
+	}
+
+	cred := common.S3CredentialsResponse{
+		Username: generatedName,
+	}
 	if errAws, ok := err.(awserr.Error); ok && errAws.Code() == iam.ErrCodeNoSuchEntityException {
 		_, err := svc.CreateUser(&iam.CreateUserInput{
 			UserName: aws.String(generatedName),
@@ -105,6 +111,9 @@ func createNewS3User(bucketname string, s3username string, stage string, isReado
 		})
 		cred.AccessKeyID = *result.AccessKey.AccessKeyId
 		cred.SecretKey = *result.AccessKey.SecretAccessKey
+	} else {
+		log.Println("Failed to create used: ", err.Error())
+		return nil, errors.New(genericUserCreationError)
 	}
 
 	policy := bucketname

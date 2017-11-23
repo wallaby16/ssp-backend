@@ -11,6 +11,8 @@ import (
 
 	"strconv"
 
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -125,19 +127,27 @@ func newS3UserHandler(c *gin.Context) {
 
 	var data common.NewS3UserCommand
 	if c.BindJSON(&data) == nil {
-
-		if err := validateNewS3User(username, bucketName, data.UserName, data.Stage); err != nil {
+		isNonProd := strings.HasSuffix(bucketName, accountNonProd)
+		var stage string
+		if isNonProd {
+			stage = stageDev
+		} else {
+			stage = stageProd
+		}
+		if err := validateNewS3User(username, bucketName, data.UserName, stage); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
 		log.Print(username + " creates a new user (" + data.UserName + ") for " + bucketName + " , readonly: " + strconv.FormatBool(data.IsReadonly))
 
-		credentials, err := createNewS3User(bucketName, data.UserName, data.Stage, data.IsReadonly)
+		credentials, err := createNewS3User(bucketName, data.UserName, stage, data.IsReadonly)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
-			c.JSON(http.StatusOK, credentials)
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Der Benutzer (%v) wurde erstellt. Access Key ID: %v - Secret Access Key: %v",
+					credentials.Username, credentials.AccessKeyID, credentials.SecretKey)})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})

@@ -44,6 +44,8 @@ const routes = [
   },
   {
     path: '/aws/news3bucket', component: LocalComponents.NewS3Bucket
+  }, {
+    path: '/aws/news3user', component: LocalComponents.NewS3User
   }
 ];
 
