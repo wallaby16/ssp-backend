@@ -28,6 +28,12 @@ type BashRunner struct{}
 
 func (r BashRunner) Run(command string, args ...string) ([]byte, error) {
 	out, err := exec.Command(command, args...).Output()
+
+	// If lvextend has the same size exit code 5 is fine
+	if err != nil && strings.Contains(command, "lvextend") && strings.Contains(err.Error(), "exit status 5") {
+		err = nil
+	}
+
 	return out, err
 }
 
