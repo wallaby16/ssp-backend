@@ -63,23 +63,34 @@ func GetIAMClient(stage string) (*iam.IAM, error) {
 }
 
 func getAwsSession(account string) (*session.Session, error) {
-	var accessID string
+	// Validate necessary env variables
+	region := os.Getenv("AWS_REGION")
+	if len(region) == 0 {
+		log.Fatal("Env variable 'AWS_REGION' must be specified")
+	}
+	bucketPrefix := os.Getenv("AWS_S3_BUCKET_PREFIX")
+	if len(bucketPrefix) == 0 {
+		log.Fatal("Env variable 'AWS_S3_BUCKET_PREFIX' must be specified")
+	}
+
+	// Create AWS session based on account
+	var accessKeyID string
 	var accessSecret string
 
 	switch account {
 	case accountProd:
-		accessID = os.Getenv("AWS_PROD_ACCESS_KEY_ID")
+		accessKeyID = os.Getenv("AWS_PROD_ACCESS_KEY_ID")
 		accessSecret = os.Getenv("AWS_PROD_SECRET_ACCESS_KEY")
 	case accountNonProd:
-		accessID = os.Getenv("AWS_NONPROD_ACCESS_KEY_ID")
+		accessKeyID = os.Getenv("AWS_NONPROD_ACCESS_KEY_ID")
 		accessSecret = os.Getenv("AWS_NONPROD_SECRET_ACCESS_KEY")
 	default:
 		log.Println("Invalid account: " + account)
 	}
 
 	sess, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(accessID, accessSecret, ""),
-		Region:      aws.String(os.Getenv("AWS_REGION"))},
+		Credentials: credentials.NewStaticCredentials(accessKeyID, accessSecret, ""),
+		Region:      aws.String(region)},
 	)
 
 	if err != nil {
