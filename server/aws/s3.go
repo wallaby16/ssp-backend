@@ -345,8 +345,9 @@ func listS3BucketByUsernameForAccount(username string, account string) ([]common
 		}
 		result, err := svc.GetBucketTagging(taggingParams)
 		if err != nil {
-			log.Print("Unable to get tags for bucket, username " + username + ": " + err.Error())
-			return nil, errors.New(genericListError)
+			log.Print("Unable to get tags for bucket " + *b.Name + ", username " + username + ": " + err.Error())
+			// Something went wrong with this bucket (probably no tags). Don't fail, just skip this bucket
+			continue
 		}
 
 		// Get list of buckets where "Creator" equals username and return only those
