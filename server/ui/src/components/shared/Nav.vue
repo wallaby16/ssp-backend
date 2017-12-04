@@ -47,7 +47,7 @@
                         <router-link to="/ddc/billing" class="navbar-item">DDC Kostenverrechnung</router-link>
                     </div>
                 </div>
-                <div class="navbar-item has-dropdown is-hoverable">
+                <div v-if="user" class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">
                         AWS
                     </a>
