@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><i class="material-icons">cached</i> AWS S3 Bucket erstellen</h1>
+                    <h1 class="title"><i class="material-icons">edit</i> AWS S3 Bucket erstellen</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier kannst du einen AWS S3 Bucket erstellen. Alle Bestellungen werden geloggt & verrechnet.</h2>

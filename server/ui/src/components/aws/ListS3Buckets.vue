@@ -3,7 +3,7 @@
         <div class="hero is-light">
             <div class="hero-body">
                 <div class="container">
-                    <h1 class="title"><i class="material-icons">cached</i> AWS S3 Bucket anzeigen</h1>
+                    <h1 class="title"><i class="material-icons">list</i> AWS S3 Bucket anzeigen</h1>
                 </div>
                 <h2 class="subtitle">
                     Hier werden alle deine AWS S3 Buckets angezeigt.</h2>
