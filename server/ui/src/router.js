@@ -65,8 +65,7 @@ router.beforeEach((to, from, next) => {
     next({path: '/login'});
   } else {
     // Check if token is still valid
-    if (store.state.user) {
-    // if (store.state.user && store.state.user.exp < Date.now() / 1000) {
+    if (store.state.user && store.state.user.exp < Date.now() / 1000) {
       console.error('Token is no longer valid, navigating to login');
       store.commit('setUser', {user: null});
 
