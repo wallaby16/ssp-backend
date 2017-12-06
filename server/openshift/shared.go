@@ -49,7 +49,7 @@ func getProjectAdminsAndOperators(project string) ([]string, []string, error) {
 		return nil, nil, errors.New(genericAPIError)
 	}
 
-	admins := []string{}
+	var admins []string
 	hasOperatorGroup := false
 	for _, v := range children {
 		if v.Path("name").Data().(string) == "admin" {
@@ -72,7 +72,7 @@ func getProjectAdminsAndOperators(project string) ([]string, []string, error) {
 		}
 	}
 
-	operators := []string{}
+	var operators []string
 	if hasOperatorGroup {
 		// Going to add the operator group to the admins
 		json, err := getOperatorGroup()
