@@ -1,7 +1,13 @@
 # General idea
-Build Status: [![Build Status](https://travis-ci.org/oscp/cloud-selfservice-portal.svg?branch=master)](https://travis-ci.org/oscp/cloud-selfservice-portal)
+Build Status: [![Build Status](https://travis-ci.org/oscp/cloud-selfservice-portal-backend.svg?branch=master)](https://travis-ci.org/oscp/cloud-selfservice-portal-backend)
 
 We at [@SchweizerischeBundesbahnen](https://github.com/SchweizerischeBundesbahnen) have a lot of projects who need changes on their projects all the time. As those settings are (and that is fine) limited to the administrator roles, we had to do a lot of manual changes like:
+
+Tools for Developers:
+- Creating new bitbucket projects
+- Creating confluence projects
+
+OpenShift:
 - Creating new projects with certain attributes
 - Updating projects metadata like billing information
 - Updating project quotas
@@ -18,7 +24,8 @@ Billing:
 So we built this tool which allows users to do certain things in self service. The tool checks permissions & certain conditions.
 
 # Components
-- The Self-Service-Portal (as container)
+- The Self-Service-Portal Backend (as container)
+- The Self-Service-Portal Frontend (see https://github.com/oscp/cloud-selfservice-portal-frontend)
 - The GlusterFS-API server (as a sytemd service)
 
 # Installation & Documentation

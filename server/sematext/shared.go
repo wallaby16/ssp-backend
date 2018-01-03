@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 func RegisterRoutes(r *gin.RouterGroup) {
@@ -20,16 +20,13 @@ func getSematextHTTPClient(method string, url string, body io.Reader) (*http.Cli
 		log.Fatal("Env variable 'SEMATEXT_API_TOKEN' must be specified")
 	}
 
-
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, url, body)
 
 	if common.DebugMode() {
-		 log.Println("Calling ", req.URL.String())
+		log.Println("Calling ", req.URL.String())
 	}
 
 	req.Header.Add("Authorization ")
 
 }
-
-

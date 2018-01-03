@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/aws"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"github.com/oscp/cloud-selfservice-portal/server/ddc"
-	"github.com/oscp/cloud-selfservice-portal/server/openshift"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/aws"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/ddc"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/openshift"
 )
 
 func main() {

@@ -17,13 +17,13 @@ import (
 
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/glusterapi/models"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 const (
 	wrongSizeFormatError = "Ungültige Grösse. Format muss Zahl gefolgt von M/G sein (z.B. 500M)."
-	wrongSizeLimitError = "Grösse nicht erlaubt. Mindestgrösse: 500M. Maximale Grössen sind: M: %v, G: %v"
+	wrongSizeLimitError  = "Grösse nicht erlaubt. Mindestgrösse: 500M. Maximale Grössen sind: M: %v, G: %v"
 )
 
 func newVolumeHandler(c *gin.Context) {
@@ -185,7 +185,7 @@ func validateMaxSize(size string) error {
 }
 
 func checkPvcName(project string, pvcName string) error {
-	client, req := getOseHTTPClient("GET", "api/v1/namespaces/" + project + "/persistentvolumeclaims", nil)
+	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project+"/persistentvolumeclaims", nil)
 	resp, err := client.Do(req)
 
 	if err != nil {
