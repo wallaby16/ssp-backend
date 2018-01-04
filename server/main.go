@@ -5,6 +5,7 @@ import (
 
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/oscp/cloud-selfservice-portal-backend/server/aws"
 	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
@@ -15,6 +16,12 @@ import (
 func main() {
 	router := gin.New()
 	router.Use(gin.Recovery())
+
+	// Allow cors
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AddAllowHeaders("*")
+	router.Use(cors.New(corsConfig))
 
 	// Public routes
 	authMiddleware := common.GetAuthMiddleware()
