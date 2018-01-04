@@ -16,6 +16,7 @@ install:
 - go get gopkg.in/jarcoal/httpmock.v1
 - go get github.com/coreos/etcd/client
 - go get github.com/aws/aws-sdk-go/aws
+- go get github.com/patrickmn/go-cache
 
 script:
 # Copy service files

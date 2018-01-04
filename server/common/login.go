@@ -9,7 +9,10 @@ import (
 
 	"github.com/jtblin/go-ldap-client"
 	"gopkg.in/appleboy/gin-jwt.v2"
+	"github.com/patrickmn/go-cache"
 )
+
+var userCache *cache.Cache
 
 // GetAuthMiddleware returns a gin middleware for JWT with cookie based auth
 func GetAuthMiddleware() *jwt.GinJWTMiddleware {
@@ -18,6 +21,9 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	if len(key) == 0 {
 		log.Fatal("Env variable 'SESSION_KEY' must be specified")
 	}
+
+	// Initialize the user cache
+	userCache = cache.New(10 * time.Minute, 24 * time.Hour)
 
 	return &jwt.GinJWTMiddleware{
 		Realm:         "CLOUD_SSP",
@@ -34,8 +40,20 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 				"message": message,
 			})
 		},
+		PayloadFunc: userPayloadFunc,
 		TokenLookup: "header:Authorization",
 		TimeFunc:    time.Now,
+	}
+}
+
+func userPayloadFunc(userID string) map[string]interface{} {
+	if mail, ok := userCache.Get(userID); ok {
+		res := make(map[string]interface{})
+		res["mail"] = mail
+		return res
+	} else {
+		log.Println("Error, could not find mail for user: " + userID + " - Sematext functions will not work correctly")
+		return nil
 	}
 }
 
@@ -47,6 +65,7 @@ func ldapAuthenticator(userID string, password string, c *gin.Context) (string, 
 	ldapSearchBase := os.Getenv("LDAP_SEARCH_BASE")
 
 	client := &ldap.LDAPClient{
+		Attributes:   []string{"givenName", "sn", "mail", "uid"},
 		Base:         ldapSearchBase,
 		Host:         ldapHost,
 		Port:         389,
@@ -56,15 +75,20 @@ func ldapAuthenticator(userID string, password string, c *gin.Context) (string, 
 		BindPassword: ldapBindPw,
 		UserFilter:   ldapFilter,
 	}
+
 	// It is the responsibility of the caller to close the connection
 	defer client.Close()
 
-	ok, _, err := client.Authenticate(userID, password)
+	ok, user, err := client.Authenticate(userID, password)
 	if err != nil {
 		log.Printf("Error authenticating user %s: %+v", userID, err)
 	}
 	if !ok {
 		log.Printf("Authenticating failed for user %s", userID)
 	}
+
+	// Put the user mail address in the cache for the payload function
+	userCache.Add(userID, user["mail"], cache.DefaultExpiration)
+
 	return userID, ok
 }

@@ -15,28 +15,6 @@ import (
 	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
-func GetProjectList() (*gabs.Container, error) {
-	log.Println("Reading all projects from OSE api")
-
-	client, req := getOseHTTPClient("GET", "oapi/v1/projects", nil)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("Error getting project list from OSE api", err.Error())
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	json, err := gabs.ParseJSONBuffer(resp.Body)
-	if err != nil {
-		log.Println("error parsing body of response:", err)
-		return nil, err
-	}
-
-	return json, nil
-}
-
 func newProjectHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 

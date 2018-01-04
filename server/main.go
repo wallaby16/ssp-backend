@@ -11,6 +11,7 @@ import (
 	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 	"github.com/oscp/cloud-selfservice-portal-backend/server/ddc"
 	"github.com/oscp/cloud-selfservice-portal-backend/server/openshift"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/sematext"
 )
 
 func main() {
@@ -44,6 +45,9 @@ func main() {
 
 		// AWS routes
 		aws.RegisterRoutes(auth)
+
+		// Sematext routes
+		sematext.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")

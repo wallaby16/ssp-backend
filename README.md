@@ -63,12 +63,14 @@ GLUSTER\_SECRET|The basic auth password you configured on the gluster api|secret
 GLUSTER\_IPS|IP addresses of the gluster endpoints|192.168.1.1,192.168.1.2
 MAX\_VOLUME\_GB|How many GB storage can a user order|100
 DDC\_API|URL of the DDC Billing API|http://ddc-api.ch
-AWS_PROD_ACCESS_KEY_ID|AWS Access Key ID to manage AWS ressources for production buckets|AKIAIOSFODNN7EXAMPLE
-AWS_PROD_SECRET_ACCESS_KEY|AWS Secret Access Key to manage AWS ressources for production buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_NONPROD_ACCESS_KEY_ID|AWS Access Key ID to manage AWS ressources for development buckets|AKIAIOSFODNN7EXAMPLE
-AWS_NONPROD_SECRET_ACCESS_KEY|AWS Secret Access Key to manage AWS ressources for development buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_S3_BUCKET_PREFIX|Prefix for all generated S3 buckets|mycompany
-AWS_REGION|Region for all the aws artifacts|eu-central-1
+AWS\_PROD\_ACCESS\_KEY\_ID|AWS Access Key ID to manage AWS ressources for production buckets|AKIAIOSFODNN7EXAMPLE
+AWS\_PROD\_SECRET\_ACCESS\_KEY|AWS Secret Access Key to manage AWS ressources for production buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS\_NONPROD\_ACCESS\_KEY\_ID|AWS Access Key ID to manage AWS ressources for development buckets|AKIAIOSFODNN7EXAMPLE
+AWS\_NONPROD\_SECRET\_ACCESS\_KEY|AWS Secret Access Key to manage AWS ressources for development buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS\_S3\_BUCKET_PREFIX|Prefix for all generated S3 buckets|mycompany
+AWS\_REGION|Region for all the aws artifacts|eu-central-1
+SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
+SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
 
 ## The GlusterFS api
 Use/see the service unit file in ./glusterapi/install/
