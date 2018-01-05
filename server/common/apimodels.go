@@ -75,6 +75,16 @@ type AdminList struct {
 	Admins []string `json:"admins"`
 }
 
+type SematextAppList struct {
+	Name           string  `json:"name"`
+	PlanName       string  `json:"planName"`
+	UserRole       string  `json:"userRole"`
+	IsFree         bool    `json:"isFree"`
+	MaxDailyEvents float64 `json:"maxDailyEvents"`
+	PricePerDay    float64 `json:"pricePerDay"`
+	BillingInfo    string  `json:"billingInfo"`
+}
+
 type DDCBilling struct {
 	Rows []DDCBillingRow `json:"rows"`
 	CSV  string          `json:"csv"`
