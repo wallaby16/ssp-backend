@@ -8,21 +8,93 @@ import (
 	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 	"net/http"
 	"strings"
+	"bytes"
+	"strconv"
+	"fmt"
+	"io/ioutil"
 )
 
 const (
 	genericAPIError    = "Fehler beim Aufruf der Sematext-API. Bitte erstelle ein Ticket."
 	sematextRoleActive = "ACTIVE"
+	noAccessError      = "Du hast keinen Zugriff auf diese Sematext-Anwendung"
 )
 
 func getLogseneAppsHandler(c *gin.Context) {
 	mail := common.GetUserMail(c)
+	username := common.GetUserName(c)
+
+	fmt.Sprintf("User %v listed all his sematext logsene apps", username)
 
 	if appList, err := getAllLogseneAppsForUser(mail); err != nil {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 	} else {
 		c.JSON(http.StatusOK, appList)
 	}
+}
+
+func updateLogseneAppHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	mail := common.GetUserMail(c)
+	appId, err := strconv.Atoi(c.Param("appId"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+		return
+	}
+
+	var data common.EditBillingDataCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateLogseneAppEdit(mail, appId, data.Project, data.Billing); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		if err := updateBillingInfo(username, data.Billing, data.Project, appId); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Die Kontierungsdaten (%v / %v) wurden gespeichert.", data.Billing, data.Project),
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
+func validateLogseneAppEdit(mail string, appId int, project string, billing string) error {
+	// Check permissions
+	err := validateLogseneAppPermissions(mail, appId)
+	if err != nil {
+		return err
+	}
+
+	// Check values
+	if len(project) == 0 {
+		return errors.New("Das Projekt muss angegeben werden!")
+	}
+
+	if len(billing) == 0 {
+		return errors.New("Die Kontierungsnummer muss angegeben werden!")
+	}
+
+	return nil
+}
+
+func validateLogseneAppPermissions(mail string, appId int) error {
+	userApps, err := getAllLogseneAppsForUser(mail)
+
+	if err != nil {
+		return err
+	}
+
+	for _, a := range userApps {
+		if a.AppId == appId {
+			return nil
+		}
+	}
+
+	return errors.New(noAccessError)
 }
 
 func getAllLogseneAppsForUser(userMail string) ([]common.SematextAppList, error) {
@@ -56,13 +128,14 @@ func getAllLogseneAppsForUser(userMail string) ([]common.SematextAppList, error)
 				status == sematextRoleActive {
 
 				userApps = append(userApps, common.SematextAppList{
-					Name: appName,
-					PlanName: app.Path("plan.name").Data().(string),
-					UserRole: role,
-					IsFree: app.Path("plan.free").Data().(bool),
+					AppId:          int(app.Path("id").Data().(float64)),
+					Name:           appName,
+					PlanName:       app.Path("plan.name").Data().(string),
+					UserRole:       role,
+					IsFree:         app.Path("plan.free").Data().(bool),
 					MaxDailyEvents: app.Path("plan.maxDailyEvents").Data().(float64),
-					PricePerDay: app.Path("plan.pricePerDay").Data().(float64),
-					BillingInfo: app.Path("description").Data().(string),
+					PricePerDay:    app.Path("plan.pricePerDay").Data().(float64),
+					BillingInfo:    app.Path("description").Data().(string),
 				})
 			}
 		}
@@ -90,4 +163,30 @@ func getAllLogseneApps() (*gabs.Container, error) {
 	}
 
 	return json, nil
+}
+
+func updateBillingInfo(username string, billing string, project string, appId int) error {
+	fmt.Sprintf("User %v updated logsene app billing to %v / %v.", username, billing, project)
+
+	json := gabs.New()
+	json.Set(billing+" / "+project, "description")
+
+	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/apps/"+strconv.Itoa(appId), bytes.NewReader(json.Bytes()))
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+
+	return errors.New(genericAPIError)
 }

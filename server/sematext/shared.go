@@ -11,8 +11,13 @@ import (
 	"strings"
 )
 
+const (
+	wrongAPIUsageError = "Invalid api call - parameters did not match to method definition"
+)
+
 func RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/sematext/logsene", getLogseneAppsHandler)
+	r.POST("/sematext/logsene/:appId", updateLogseneAppHandler)
 }
 
 func getSematextHTTPClient(method string, urlPart string, body io.Reader) (*http.Client, *http.Request) {
@@ -33,6 +38,7 @@ func getSematextHTTPClient(method string, urlPart string, body io.Reader) (*http
 		log.Println("Calling ", req.URL.String())
 	}
 
+	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "apiKey " + token)
 
 	return client, req

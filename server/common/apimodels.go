@@ -76,6 +76,7 @@ type AdminList struct {
 }
 
 type SematextAppList struct {
+	AppId          int     `json:"appId"`
 	Name           string  `json:"name"`
 	PlanName       string  `json:"planName"`
 	UserRole       string  `json:"userRole"`
