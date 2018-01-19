@@ -16,8 +16,10 @@ const (
 )
 
 func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/sematext/plans", getLogsenePlansHandler)
 	r.GET("/sematext/logsene", getLogseneAppsHandler)
-	r.POST("/sematext/logsene/:appId", updateLogseneAppHandler)
+	r.POST("/sematext/logsene/:appId", updateLogseneBillingHandler)
+	r.POST("/sematext/logsene/:appId/plan", updateLogsenePlanAndLimitHandler)
 }
 
 func getSematextHTTPClient(method string, urlPart string, body io.Reader) (*http.Client, *http.Request) {

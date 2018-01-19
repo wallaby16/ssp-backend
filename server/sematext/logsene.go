@@ -33,7 +33,44 @@ func getLogseneAppsHandler(c *gin.Context) {
 	}
 }
 
-func updateLogseneAppHandler(c *gin.Context) {
+func getLogsenePlansHandler(c *gin.Context) {
+	if plans, err := getAllLogsenePlans(); err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+	} else {
+		c.JSON(http.StatusOK, plans)
+	}
+}
+
+func updateLogsenePlanAndLimitHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	mail := common.GetUserMail(c)
+	appId, err := strconv.Atoi(c.Param("appId"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+		return
+	}
+
+	var data common.EditSematextPlanCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateLogsenePlanAndLimitEdit(mail, appId, data.PlanId, data.Limit); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		if err := updateLogsenePlanAndLimit(username, data.PlanId, data.Limit, appId); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: "Der neue Plan & Limite wurden gespeichert.",
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
+func updateLogseneBillingHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 	mail := common.GetUserMail(c)
 	appId, err := strconv.Atoi(c.Param("appId"))
@@ -45,12 +82,12 @@ func updateLogseneAppHandler(c *gin.Context) {
 
 	var data common.EditBillingDataCommand
 	if c.BindJSON(&data) == nil {
-		if err := validateLogseneAppEdit(mail, appId, data.Project, data.Billing); err != nil {
+		if err := validateLogseneBillingEdit(mail, appId, data.Project, data.Billing); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 			return
 		}
 
-		if err := updateBillingInfo(username, data.Billing, data.Project, appId); err != nil {
+		if err := updateLogseneBilling(username, data.Billing, data.Project, appId); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
@@ -62,7 +99,7 @@ func updateLogseneAppHandler(c *gin.Context) {
 	}
 }
 
-func validateLogseneAppEdit(mail string, appId int, project string, billing string) error {
+func validateLogseneBillingEdit(mail string, appId int, project string, billing string) error {
 	// Check permissions
 	err := validateLogseneAppPermissions(mail, appId)
 	if err != nil {
@@ -76,6 +113,25 @@ func validateLogseneAppEdit(mail string, appId int, project string, billing stri
 
 	if len(billing) == 0 {
 		return errors.New("Die Kontierungsnummer muss angegeben werden!")
+	}
+
+	return nil
+}
+
+func validateLogsenePlanAndLimitEdit(mail string, appId int, planId int, limit int) error {
+	// Check permissions
+	err := validateLogseneAppPermissions(mail, appId)
+	if err != nil {
+		return err
+	}
+
+	// Check values
+	if planId <= 0 {
+		return errors.New("Der neue Plan muss angegeben werden!")
+	}
+
+	if limit <= 0 {
+		return errors.New("Die Tageslimite muss muss angegeben werden!")
 	}
 
 	return nil
@@ -128,20 +184,62 @@ func getAllLogseneAppsForUser(userMail string) ([]common.SematextAppList, error)
 				status == sematextRoleActive {
 
 				userApps = append(userApps, common.SematextAppList{
-					AppId:          int(app.Path("id").Data().(float64)),
-					Name:           appName,
-					PlanName:       app.Path("plan.name").Data().(string),
-					UserRole:       role,
-					IsFree:         app.Path("plan.free").Data().(bool),
-					MaxDailyEvents: app.Path("plan.maxDailyEvents").Data().(float64),
-					PricePerDay:    app.Path("plan.pricePerDay").Data().(float64),
-					BillingInfo:    app.Path("description").Data().(string),
+					AppId:         int(app.Path("id").Data().(float64)),
+					Name:          appName,
+					PlanName:      app.Path("plan.name").Data().(string),
+					UserRole:      role,
+					IsFree:        app.Path("plan.free").Data().(bool),
+					PricePerMonth: round(30*app.Path("plan.pricePerDay").Data().(float64), 0.05),
+					BillingInfo:   app.Path("description").Data().(string),
 				})
 			}
 		}
 	}
 
 	return userApps, nil
+}
+
+func getAllLogsenePlans() ([]common.SematextLogsenePlan, error) {
+	client, req := getSematextHTTPClient("GET", "users-web/api/v3/billing/availablePlans?appType=Logsene", nil)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return nil, errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	json, err := gabs.ParseJSONBuffer(resp.Body)
+	if err != nil {
+		log.Println("error parsing body of response:", err)
+		return nil, errors.New(genericAPIError)
+	}
+
+	// Map response
+	allPlans, err := json.Path("data.availablePlans").Children()
+	if err != nil {
+		log.Println("error getting data inside json", err.Error())
+		return nil, errors.New(genericAPIError)
+	}
+
+	plans := []common.SematextLogsenePlan{}
+	for _, plan := range allPlans {
+		plans = append(plans, common.SematextLogsenePlan{
+			PlanId:                     int(plan.Path("id").Data().(float64)),
+			Name:                       plan.Path("name").Data().(string),
+			IsFree:                     plan.Path("free").Data().(bool),
+			DefaultDailyMaxLimitSizeMb: plan.Path("defaultDailyMaxLimitSizeMb").Data().(float64),
+			PricePerMonth:              round(30*plan.Path("pricePerDay").Data().(float64), 0.05),
+		})
+	}
+
+	return plans, nil
+}
+
+func round(x, unit float64) float64 {
+	return float64(int64(x/unit+0.5)) * unit
 }
 
 func getAllLogseneApps() (*gabs.Container, error) {
@@ -165,13 +263,77 @@ func getAllLogseneApps() (*gabs.Container, error) {
 	return json, nil
 }
 
-func updateBillingInfo(username string, billing string, project string, appId int) error {
+func updateLogseneBilling(username string, billing string, project string, appId int) error {
 	fmt.Sprintf("User %v updated logsene app billing to %v / %v.", username, billing, project)
 
-	json := gabs.New()
-	json.Set(billing+" / "+project, "description")
+	j := gabs.New()
+	j.Set(billing+" / "+project, "planId")
 
-	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/apps/"+strconv.Itoa(appId), bytes.NewReader(json.Bytes()))
+	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/apps/"+strconv.Itoa(appId), bytes.NewReader(j.Bytes()))
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+
+	return errors.New(genericAPIError)
+}
+
+func updateLogsenePlanAndLimit(username string, planId int, limit int, appId int) error {
+	if err := updateLogsenePlan(username, planId, appId); err != nil {
+		return err
+	}
+
+	if err := updateLogseneLimit(username, limit, appId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateLogseneLimit(username string, limit int, appId int) error {
+	fmt.Sprintf("User %v updated logsene app limit to: %v", username, limit)
+
+	j := gabs.New()
+	j.Set(limit, "maxLimitMB")
+
+	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/apps/"+strconv.Itoa(appId), bytes.NewReader(j.Bytes()))
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+
+	return errors.New(genericAPIError)
+}
+
+func updateLogsenePlan(username string, planId int, appId int) error {
+	fmt.Sprintf("User %v updated logsene app plan to planId: %v", username, planId)
+
+	j := gabs.New()
+	j.Set(planId, "planId")
+
+	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/billing/info/"+strconv.Itoa(appId), bytes.NewReader(j.Bytes()))
 	resp, err := client.Do(req)
 
 	if err != nil {

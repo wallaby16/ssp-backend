@@ -36,6 +36,11 @@ type EditBillingDataCommand struct {
 	Billing string `json:"billing"`
 }
 
+type EditSematextPlanCommand struct {
+	PlanId int `json:"planId"`
+	Limit  int `json:"limit"`
+}
+
 type EditQuotasCommand struct {
 	ProjectName
 	CPU    string `json:"cpu"`
@@ -76,14 +81,21 @@ type AdminList struct {
 }
 
 type SematextAppList struct {
-	AppId          int     `json:"appId"`
-	Name           string  `json:"name"`
-	PlanName       string  `json:"planName"`
-	UserRole       string  `json:"userRole"`
-	IsFree         bool    `json:"isFree"`
-	MaxDailyEvents float64 `json:"maxDailyEvents"`
-	PricePerDay    float64 `json:"pricePerDay"`
-	BillingInfo    string  `json:"billingInfo"`
+	AppId         int     `json:"appId"`
+	Name          string  `json:"name"`
+	PlanName      string  `json:"planName"`
+	UserRole      string  `json:"userRole"`
+	IsFree        bool    `json:"isFree"`
+	PricePerMonth float64 `json:"pricePerMonth"`
+	BillingInfo   string  `json:"billingInfo"`
+}
+
+type SematextLogsenePlan struct {
+	PlanId                     int     `json:"planId"`
+	Name                       string  `json:"name"`
+	IsFree                     bool    `json:"isFree"`
+	PricePerMonth              float64 `json:"pricePerMonth"`
+	DefaultDailyMaxLimitSizeMb float64 `json:"defaultDailyMaxLimitSizeMb"`
 }
 
 type DDCBilling struct {
