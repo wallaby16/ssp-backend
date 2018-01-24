@@ -36,6 +36,12 @@ type EditBillingDataCommand struct {
 	Billing string `json:"billing"`
 }
 
+type CreateLogseneAppCommand struct {
+	AppName string `json:"appName"`
+	EditSematextPlanCommand
+	EditBillingDataCommand
+}
+
 type EditSematextPlanCommand struct {
 	PlanId int `json:"planId"`
 	Limit  int `json:"limit"`

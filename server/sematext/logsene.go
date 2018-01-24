@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	genericAPIError    = "Fehler beim Aufruf der Sematext-API. Bitte erstelle ein Ticket."
-	sematextRoleActive = "ACTIVE"
-	noAccessError      = "Du hast keinen Zugriff auf diese Sematext-Anwendung"
+	genericAPIError     = "Fehler beim Aufruf der Sematext-API. Bitte erstelle ein Ticket."
+	sematextRoleActive  = "ACTIVE"
+	sematextRoleAdmin   =  "ADMIN"
+	noAccessError       = "Du hast keinen Zugriff auf diese Sematext-Anwendung"
 )
 
 func getLogseneAppsHandler(c *gin.Context) {
@@ -97,6 +98,53 @@ func updateLogseneBillingHandler(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 	}
+}
+
+func createLogseneAppHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	mail := common.GetUserMail(c)
+
+	var data common.CreateLogseneAppCommand
+	if c.BindJSON(&data) == nil {
+		if err := validateNewLogseneApp(data.AppName, data.PlanId, data.Limit, data.Project, data.Billing); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+			return
+		}
+
+		if err := createLogseneAppAndInviteUser(username, mail, data); err != nil {
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
+		} else {
+			c.JSON(http.StatusOK, common.ApiResponse{
+				Message: fmt.Sprintf("Die Logsene App (%v) wurde erstellt. %v wurde als Administrator eingeladen.", data.AppName, mail),
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
+	}
+}
+
+func validateNewLogseneApp(appName string, planId int, limit int, project string, billing string) error {
+	if len(appName) == 0 {
+		return errors.New("App-Name muss angegeben werden!")
+	}
+
+	if planId <= 0 {
+		return errors.New("Plan muss angegeben werden!")
+	}
+
+	if limit <= 0 {
+		return errors.New("Die Tageslimite muss muss angegeben werden!")
+	}
+
+	if len(project) == 0 {
+		return errors.New("Name vom Projekt muss angegeben werden!")
+	}
+
+	if len(billing) == 0 {
+		return errors.New("Kontierungsnummer muss angegeben werden!")
+	}
+
+	return nil
 }
 
 func validateLogseneBillingEdit(mail string, appId int, project string, billing string) error {
@@ -263,11 +311,109 @@ func getAllLogseneApps() (*gabs.Container, error) {
 	return json, nil
 }
 
+func createLogseneAppAndInviteUser(username string, mail string, data common.CreateLogseneAppCommand) error {
+	appId, err := createLogseneApp(username, data);
+	if err != nil {
+		return err
+	}
+
+	if err := updateLogsenePlanAndLimit(username, data.PlanId, data.Limit, appId); err != nil {
+		return err
+	}
+
+	if err := updateLogseneBilling(username, data.Billing, data.Project, appId); err != nil {
+		return err
+	}
+
+	if err := inviteUserToApp(mail, appId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createLogseneApp(username string, data common.CreateLogseneAppCommand) (int, error) {
+	fmt.Sprintf("User %v creates a new logsene app, name: %v, planId: %v, limit: %v, project: %v, billing: %v",
+		username, data.AppName, data.PlanId, data.Limit, data.Project, data.Billing)
+
+	j := gabs.New()
+	j.Set(data.AppName, "name")
+	j.Set(data.PlanId, "initialPlanId")
+	j.Set("Logsene", "appType")
+
+	client, req := getSematextHTTPClient("POST", "logsene-reports/api/v3/apps", bytes.NewReader(j.Bytes()))
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return -1, errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		resJson, err := gabs.ParseJSONBuffer(resp.Body)
+		if err != nil {
+			log.Println("Error parsing app creation response from sematext: ", err.Error())
+			return -1, errors.New(genericAPIError)
+		}
+
+		newApp, err := resJson.Path("data.apps").Children()
+		if err != nil {
+			log.Println("Error getting data inside json", err.Error())
+			return -1, errors.New(genericAPIError)
+		}
+
+		return int(newApp[0].Path("id").Data().(float64)), nil
+	} else {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		log.Println("CreateLogseneApp: Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+
+		if strings.Contains(string(bodyBytes), "alreadyExist") {
+			return -1, errors.New("Eine Anwendung mit diesem Namen existiert bereits")
+		}
+	}
+
+	return -1, errors.New(genericAPIError)
+}
+
+func inviteUserToApp(mail string, appId int) error {
+	fmt.Sprintf("Inviting %v to logsene app %v.", mail, appId)
+
+	j := gabs.New()
+	j.Set(mail, "inviteeEmail")
+	j.Set(sematextRoleAdmin, "inviteeRole")
+
+	newAppId := gabs.New()
+	newAppId.Set(appId, "id")
+	j.Array("apps")
+	j.ArrayAppend(newAppId.Data(), "apps")
+
+	client, req := getSematextHTTPClient("POST", "users-web/api/v3/apps/guests", bytes.NewReader(j.Bytes()))
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Println("Error from Sematext API: ", err.Error())
+		return errors.New(genericAPIError)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	log.Println("InviteUserToApp: Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+
+	return errors.New(genericAPIError)
+}
+
 func updateLogseneBilling(username string, billing string, project string, appId int) error {
 	fmt.Sprintf("User %v updated logsene app billing to %v / %v.", username, billing, project)
 
 	j := gabs.New()
-	j.Set(billing+" / "+project, "planId")
+	j.Set(billing+" / "+project, "description")
 
 	client, req := getSematextHTTPClient("PUT", "users-web/api/v3/apps/"+strconv.Itoa(appId), bytes.NewReader(j.Bytes()))
 	resp, err := client.Do(req)
@@ -284,7 +430,7 @@ func updateLogseneBilling(username string, billing string, project string, appId
 	}
 
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+	log.Println("UpdateLogseneBilling: Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
 
 	return errors.New(genericAPIError)
 }
@@ -322,7 +468,7 @@ func updateLogseneLimit(username string, limit int, appId int) error {
 	}
 
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+	log.Println("UpdateLogseneLimit: Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
 
 	return errors.New(genericAPIError)
 }
@@ -348,7 +494,7 @@ func updateLogsenePlan(username string, planId int, appId int) error {
 	}
 
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	log.Println("Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
+	log.Println("UpdateLogsenePlan: Sematext response status code was: ", resp.StatusCode, string(bodyBytes))
 
 	return errors.New(genericAPIError)
 }
