@@ -32,7 +32,7 @@ script:
 - tar -zcvf gluster-api.tar.gz dist/glusterapi dist/glusterapi.service
 
 # Pack the self service portal
-- tar -zcvf self-service-portal.tar.gz dist/server
+- tar -zcvf self-service-portal-backend.tar.gz dist/server
 
 deploy:
   provider: releases
