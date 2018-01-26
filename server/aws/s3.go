@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 const (

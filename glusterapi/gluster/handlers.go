@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/glusterapi/models"
+	"github.com/oscp/cloud-selfservice-portal-backend/glusterapi/models"
 )
 
 const (

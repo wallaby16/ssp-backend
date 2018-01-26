@@ -9,17 +9,19 @@ import (
 	"os"
 
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"strings"
-	"strconv"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 const (
 	getQuotasApiError = "Error getting quotas from ose-api: %v"
 	jsonDecodingError = "Error decoding json from ose api: %v"
 )
+
 func editQuotasHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 
@@ -63,11 +65,8 @@ func validateEditQuotas(username string, project string, cpu string, memory stri
 	}
 
 	// Validate permissions
-	if err := checkAdminPermissions(username, project); err != nil {
-		return err
-	}
-
-	return nil
+	resp := checkAdminPermissions(username, project)
+	return resp
 }
 
 func GetQuotas(project string) (int, int) {

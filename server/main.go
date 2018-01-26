@@ -5,16 +5,24 @@ import (
 
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/aws"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
-	"github.com/oscp/cloud-selfservice-portal/server/ddc"
-	"github.com/oscp/cloud-selfservice-portal/server/openshift"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/aws"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/ddc"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/openshift"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/sematext"
 )
 
 func main() {
 	router := gin.New()
 	router.Use(gin.Recovery())
+
+	// Allow cors
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AddAllowHeaders("*")
+	router.Use(cors.New(corsConfig))
 
 	// Public routes
 	authMiddleware := common.GetAuthMiddleware()
@@ -37,6 +45,9 @@ func main() {
 
 		// AWS routes
 		aws.RegisterRoutes(auth)
+
+		// Sematext routes
+		sematext.RegisterRoutes(auth)
 	}
 
 	log.Println("Cloud SSP is running")

@@ -14,7 +14,7 @@ import (
 	"bytes"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 const apiErrorDDC = "Fehler beim Aufruf der DDC-API. Bitte erstelle ein Ticket bei DDC."
@@ -45,16 +45,16 @@ func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
 
 	// Title row
 	title := []string{"SendStelle", "SendAuftrag", "Sender-PSP-Element",
-		"SendKdAuft","SndPos","SendNetzplan","SendervorgangSVrg",
+		"SendKdAuft", "SndPos", "SendNetzplan", "SendervorgangSVrg",
 		"Kostenart", "Betrag", "Waehrung",
 		"EmpfStelle", "EmpfAuftrag", "Empfaenger-PSP-Element",
 		"EmpfKdAuft", "EmpPos", "EmpfNetzplan", "Evrg",
-		"Menge gesamt","ME", "PersNr", "Text", "Sys ID"}
+		"Menge gesamt", "ME", "PersNr", "Text", "Sys ID"}
 	wr.Write(title)
 
 	for _, r := range rows {
 		totalString := strconv.FormatFloat(r.Total, 'f', 2, 64)
-		row := []string{"", r.Sender, "","","","","",r.Art, totalString, "CHF",
+		row := []string{"", r.Sender, "", "", "", "", "", r.Art, totalString, "CHF",
 			r.ReceptionAssignment, r.OrderReception, r.PspElement,
 			"", "", "", "", "1", "ST", "", "LM1706 DDC ", r.Project + ": " + r.Host}
 		wr.Write(row)
@@ -63,7 +63,7 @@ func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
 	wr.Flush()
 
 	return common.DDCBilling{
-		CSV: b.String(),
+		CSV:  b.String(),
 		Rows: rows,
 	}
 }
@@ -110,7 +110,7 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 				fee = fee_server
 			}
 
-			totalPrice := fee + usedCpu * feeCpu + usedMemory * feeMemory
+			totalPrice := fee + usedCpu*feeCpu + usedMemory*feeMemory
 			storagePrice := usedStorage * feeStorage
 
 			hasBackup := value[11] == "Yes"

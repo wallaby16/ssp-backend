@@ -8,8 +8,9 @@ import (
 	"net/http"
 
 	"fmt"
+
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal/server/common"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 )
 
 func newServiceAccountHandler(c *gin.Context) {

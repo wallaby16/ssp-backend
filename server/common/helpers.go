@@ -36,6 +36,12 @@ func GetUserName(c *gin.Context) string {
 	return jwtClaims["id"].(string)
 }
 
+// GetUserMail returns the users mail address based of the gin.Context
+func GetUserMail(c *gin.Context) string {
+	jwtClaims := jwt.ExtractClaims(c)
+	return jwtClaims["mail"].(string)
+}
+
 // DebugMode returns if gin is running in debug mode
 func DebugMode() bool {
 	mode := gin.Mode()
