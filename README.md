@@ -3,10 +3,6 @@ Build Status: [![Build Status](https://travis-ci.org/oscp/cloud-selfservice-port
 
 We at [@SchweizerischeBundesbahnen](https://github.com/SchweizerischeBundesbahnen) have a lot of projects who need changes on their projects all the time. As those settings are (and that is fine) limited to the administrator roles, we had to do a lot of manual changes like:
 
-Tools for Developers:
-- Creating new bitbucket projects
-- Creating confluence projects
-
 OpenShift:
 - Creating new projects with certain attributes
 - Updating projects metadata like billing information
@@ -20,6 +16,12 @@ Persistent storage:
 
 Billing:
 - Create a billing report for diffrent platforms
+
+AWS:
+- Create and manage AWS S3 Buckets
+
+Sematext:
+- Create and manage sematext logsene apps
 
 So we built this tool which allows users to do certain things in self service. The tool checks permissions & certain conditions.
 
