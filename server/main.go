@@ -26,10 +26,6 @@ func main() {
 
 	// Public routes
 	authMiddleware := common.GetAuthMiddleware()
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "/s/")
-	})
-	router.StaticFS("/s", http.Dir("static"))
 	router.POST("/login", authMiddleware.LoginHandler)
 	router.GET("/config", common.ConfigHandler)
 
