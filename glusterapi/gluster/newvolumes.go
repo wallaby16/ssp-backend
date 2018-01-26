@@ -139,7 +139,7 @@ func getNextVolumeNrForProject(project string) (int, error) {
 		if strings.Contains(l, "lv_"+project) {
 			num := regexp.MustCompile("(\\d+)")
 			nums := num.FindAllString(l, -1)
-			nr, err := strconv.Atoi(nums[0])
+			nr, err := strconv.Atoi(nums[len(nums)-1])
 			if err != nil {
 				log.Printf("Could not parse number out of: %v", l)
 				return -1, err
