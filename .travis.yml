@@ -4,7 +4,6 @@ go:
 
 before_install:
 - go get github.com/mitchellh/gox
-- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install stable
 
 install:
 - go get github.com/gin-gonic/gin
