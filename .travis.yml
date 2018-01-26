@@ -19,6 +19,7 @@ install:
 
 script:
 # Copy service files
+- mkdir dist
 - cp ./glusterapi/install/* ./dist/
 
 # Build golang
