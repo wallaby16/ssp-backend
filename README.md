@@ -34,7 +34,7 @@ So we built this tool which allows users to do certain things in self service. T
 ## Self-Service Portal
 ```bash
 # Create a project & a service-account
-oc new-project ose-selfservice
+oc new-project ose-selfservice-backend
 oc create serviceaccount ose-selfservice
 
 # Add a cluster policy for the portal:
@@ -42,6 +42,8 @@ oc create -f clusterPolicy-selfservice.yml
 
 # Add policy to service account
 oc adm policy add-cluster-role-to-user ose:selfservice system:serviceaccount:ose-selfservice:ose-selfservice
+
+# Use the token of the service account in the container
 ```
 
 Just create a 'oc new-app' from the dockerfile.
