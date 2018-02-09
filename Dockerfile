@@ -1,12 +1,16 @@
 FROM golang:1.8
 
+MAINTAINER Reto Lehmann <reto.lehmann@sbb.ch>
+
 WORKDIR /usr/ssp/
 
 # Download the sources and UI from github
-ADD https://github.com/oscp/cloud-selfservice-portal-backend/releases/download/v1.2.3/self-service-portal-backend.tar.gz self-service-portal-backend.tar.gz
-
-# Extract the content
-RUN tar xfvz self-service-portal-backend.tar.gz &&mv dist/* .
+RUN apt-get update && apt-get install -y wget curl \
+  && curl -s https://api.github.com/repos/oscp/cloud-selfservice-portal-backend/releases/latest -k \
+     | grep "browser_download_url" | cut -d : -f 2,3 | tr -d \" | wget -qi - \
+  && tar xfvz self-service-portal-backend.tar.gz \
+  && mv dist/* . \
+  && apt-get purge -y --auto-remove wget curl
 
 EXPOSE 8080
 
