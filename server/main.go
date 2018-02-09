@@ -19,7 +19,7 @@ func main() {
 	// Allow cors
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true
-	corsConfig.AddAllowHeaders("*")
+	corsConfig.AddAllowHeaders("authorization","*")
 	router.Use(cors.New(corsConfig))
 
 	// Public routes
