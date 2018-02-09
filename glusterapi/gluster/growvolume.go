@@ -47,20 +47,20 @@ func growLvOnOtherServers(pvName string, newSize string) error {
 		return err
 	}
 
-	p := models.GrowVolumeCommand{
-		PvName:  pvName,
-		NewSize: newSize,
-	}
-	b := new(bytes.Buffer)
-
-	if err = json.NewEncoder(b).Encode(p); err != nil {
-		log.Println("Error encoding json", err.Error())
-		return errors.New(commandExecutionError)
-	}
-
 	// Execute the commands remote via API
 	client := &http.Client{}
 	for _, r := range remotes {
+		p := models.GrowVolumeCommand{
+			PvName:  pvName,
+			NewSize: newSize,
+		}
+		b := new(bytes.Buffer)
+
+		if err = json.NewEncoder(b).Encode(p); err != nil {
+			log.Println("Error encoding json", err.Error())
+			return errors.New(commandExecutionError)
+		}
+
 		log.Println("Going to grow lv on remote:", r)
 
 		req, _ := http.NewRequest("POST", fmt.Sprintf("http://%v:%v/sec/lv/grow", r, Port), b)
