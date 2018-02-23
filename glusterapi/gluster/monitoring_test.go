@@ -15,7 +15,6 @@ func TestGetVolumeUsage(t *testing.T) {
 	equals(t, 2864, volInfo.UsedKiloBytes)
 }
 
-
 func TestGetVolumeUsage_LongProject(t *testing.T) {
 	output = []string{"    49664    2864 /dev/mapper/vg_mylv_project--long_pv1"}
 

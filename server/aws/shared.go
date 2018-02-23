@@ -32,7 +32,7 @@ const (
 )
 
 const (
-	bucketReadPolicy = "-BucketReadPolicy"
+	bucketReadPolicy  = "-BucketReadPolicy"
 	bucketWritePolicy = "-BucketWritePolicy"
 )
 

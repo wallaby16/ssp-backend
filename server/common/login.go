@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/jtblin/go-ldap-client"
-	"gopkg.in/appleboy/gin-jwt.v2"
 	"github.com/patrickmn/go-cache"
+	"gopkg.in/appleboy/gin-jwt.v2"
 )
 
 var userCache *cache.Cache
@@ -23,7 +23,7 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	}
 
 	// Initialize the user cache
-	userCache = cache.New(10 * time.Minute, 24 * time.Hour)
+	userCache = cache.New(10*time.Minute, 24*time.Hour)
 
 	return &jwt.GinJWTMiddleware{
 		Realm:         "CLOUD_SSP",

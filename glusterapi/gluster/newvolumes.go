@@ -127,7 +127,7 @@ func getNextVolumeNrForProject(project string) (int, error) {
 	}
 
 	// First volume for project
-	if strings.Count(string(out), "lv_"+ project) == 0 {
+	if strings.Count(string(out), "lv_"+project) == 0 {
 		return 1, nil
 	}
 
@@ -196,7 +196,7 @@ func createLvOnOtherServers(size string, mountPoint string, lvName string) error
 
 		log.Println("Going to create lv on remote:", r)
 
-		log.Println("sending",b)
+		log.Println("sending", b)
 
 		req, _ := http.NewRequest("POST", fmt.Sprintf("http://%v:%v/sec/lv", r, Port), b)
 		req.SetBasicAuth("GLUSTER_API", Secret)

@@ -35,14 +35,14 @@ func getSematextHTTPClient(method string, urlPart string, body io.Reader) (*http
 	}
 
 	client := &http.Client{}
-	req, _ := http.NewRequest(method, baseUrl + urlPart, body)
+	req, _ := http.NewRequest(method, baseUrl+urlPart, body)
 
 	if common.DebugMode() {
 		log.Println("Calling ", req.URL.String())
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "apiKey " + token)
+	req.Header.Add("Authorization", "apiKey "+token)
 
 	return client, req
 }

@@ -1,24 +1,24 @@
 package sematext
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/Jeffail/gabs"
-	"log"
-	"errors"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
-	"net/http"
-	"strings"
 	"bytes"
-	"strconv"
+	"errors"
 	"fmt"
+	"github.com/Jeffail/gabs"
+	"github.com/gin-gonic/gin"
+	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 const (
-	genericAPIError     = "Fehler beim Aufruf der Sematext-API. Bitte erstelle ein Ticket."
-	sematextRoleActive  = "ACTIVE"
-	sematextRoleAdmin   =  "ADMIN"
-	noAccessError       = "Du hast keinen Zugriff auf diese Sematext-Anwendung"
+	genericAPIError    = "Fehler beim Aufruf der Sematext-API. Bitte erstelle ein Ticket."
+	sematextRoleActive = "ACTIVE"
+	sematextRoleAdmin  = "ADMIN"
+	noAccessError      = "Du hast keinen Zugriff auf diese Sematext-Anwendung"
 )
 
 func getLogseneAppsHandler(c *gin.Context) {
@@ -231,15 +231,20 @@ func getAllLogseneAppsForUser(userMail string) ([]common.SematextAppList, error)
 			if strings.ToLower(mail) == strings.ToLower(userMail) &&
 				status == sematextRoleActive {
 
-				userApps = append(userApps, common.SematextAppList{
+				u := common.SematextAppList{
 					AppId:         int(app.Path("id").Data().(float64)),
 					Name:          appName,
 					PlanName:      app.Path("plan.name").Data().(string),
 					UserRole:      role,
 					IsFree:        app.Path("plan.free").Data().(bool),
 					PricePerMonth: round(30*app.Path("plan.pricePerDay").Data().(float64), 0.05),
-					BillingInfo:   app.Path("description").Data().(string),
-				})
+				}
+
+				if d, ok := app.Path("description").Data().(string); ok {
+					u.BillingInfo = d
+				}
+
+				userApps = append(userApps, u)
 			}
 		}
 	}
@@ -275,9 +280,9 @@ func getAllLogsenePlans() ([]common.SematextLogsenePlan, error) {
 	plans := []common.SematextLogsenePlan{}
 	for _, plan := range allPlans {
 		plans = append(plans, common.SematextLogsenePlan{
-			PlanId:                     int(plan.Path("id").Data().(float64)),
-			Name:                       plan.Path("name").Data().(string),
-			IsFree:                     plan.Path("free").Data().(bool),
+			PlanId: int(plan.Path("id").Data().(float64)),
+			Name:   plan.Path("name").Data().(string),
+			IsFree: plan.Path("free").Data().(bool),
 			DefaultDailyMaxLimitSizeMb: plan.Path("defaultDailyMaxLimitSizeMb").Data().(float64),
 			PricePerMonth:              round(30*plan.Path("pricePerDay").Data().(float64), 0.05),
 		})
@@ -312,7 +317,7 @@ func getAllLogseneApps() (*gabs.Container, error) {
 }
 
 func createLogseneAppAndInviteUser(username string, mail string, data common.CreateLogseneAppCommand) error {
-	appId, err := createLogseneApp(username, data);
+	appId, err := createLogseneApp(username, data)
 	if err != nil {
 		return err
 	}
