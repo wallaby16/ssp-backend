@@ -76,6 +76,18 @@ type Bucket struct {
 	Account string `json:"account"`
 }
 
+type InstanceListResponse struct {
+	Instances []Instance `json:"instances"`
+}
+
+type Instance struct {
+	Name                  string `json:"name"`
+	InstanceId            string `json:"id"`
+	State                 string `json:"state"`
+	StateTransitionReason string `json:"statereason"`
+	Account               string `json:"account"`
+}
+
 type S3CredentialsResponse struct {
 	Username    string `json:"username"`
 	AccessKeyID string `json:"accesskeyid"`

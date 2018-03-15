@@ -21,16 +21,9 @@ import (
 )
 
 const (
-	genericCreateError = "Erstellung des Buckets fehlgeschlagen. Bitte erstelle ein Ticket"
-	genericListError   = "Ressourcen können nicht aufgelistet werden. Bitte erstelle ein Ticket"
+	s3CreateError = "Erstellung des Buckets fehlgeschlagen. Bitte erstelle ein Ticket"
+	s3ListError   = "Die Buckets können nicht aufgelistet werden. Bitte erstelle ein Ticket"
 )
-
-// RegisterRoutes registers the routes for S3
-func RegisterRoutes(r *gin.RouterGroup) {
-	r.GET("/aws/s3", listS3BucketsHandler)
-	r.POST("/aws/s3", newS3BucketHandler)
-	r.POST("/aws/s3/:bucketname/user", newS3UserHandler)
-}
 
 func validateNewS3Bucket(projectname string, bucketname string, billing string, stage string) error {
 	if len(stage) == 0 {
@@ -63,7 +56,7 @@ func validateNewS3Bucket(projectname string, bucketname string, billing string, 
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
 		log.Print("Error while trying to validate new bucket (ListBucket call): " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	for _, b := range result.Buckets {
@@ -165,7 +158,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	})
 	if err != nil {
 		log.Print("Error on CreateBucket call (username=" + username + ", bucketname=" + bucketname + "): " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	// Wait until bucket is created before finishing
@@ -176,7 +169,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 
 	if err != nil {
 		log.Print("Error when creating S3 bucket in WaitUntilBucketExists: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	_, err = svc.PutBucketTagging(&s3.PutBucketTaggingInput{
@@ -191,7 +184,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 		}})
 	if err != nil {
 		log.Print("Tagging bucket " + bucketname + " failed: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	log.Print("Creating IAM policies for bucket " + bucketname + "...")
@@ -254,7 +247,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	b, err := json.Marshal(&readPolicy)
 	if err != nil {
 		log.Print("Error marshaling readPolicy: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	_, err = iamSvc.CreatePolicy(&iam.CreatePolicyInput{
@@ -263,14 +256,14 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	})
 	if err != nil {
 		log.Print("Error CreatePolicy for BucketReadPolicy failed: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	// Write policy
 	c, err := json.Marshal(&writePolicy)
 	if err != nil {
 		log.Print("Error marshaling writePolicy: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	_, err = iamSvc.CreatePolicy(&iam.CreatePolicyInput{
@@ -279,7 +272,7 @@ func createNewS3Bucket(username string, projectname string, bucketname string, b
 	})
 	if err != nil {
 		log.Print("Error CreatePolicy for BucketWritePolicy failed: " + err.Error())
-		return errors.New(genericCreateError)
+		return errors.New(s3CreateError)
 	}
 
 	log.Print("Bucket " + bucketname + " and IAM policies successfully created")
@@ -334,7 +327,7 @@ func listS3BucketByUsernameForAccount(username string, account string) ([]common
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
 		log.Print("Unable to list buckets (ListBuckets API call): " + err.Error())
-		return nil, errors.New(genericListError)
+		return nil, errors.New(s3ListError)
 	}
 
 	buckets := []common.Bucket{}

@@ -10,12 +10,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
-	wrongAPIUsageError = "Invalid API call - parameters did not match to method definition"
+	wrongAPIUsageError = "Ungültiger API-Aufruf: Die Argumente stimmen nicht mit der definition überein. Bitte erstelle eine Ticket"
 	genericAwsAPIError = "Fehler beim Aufruf der AWS API. Bitte erstelle ein Ticket"
 )
 
@@ -35,6 +38,28 @@ const (
 	bucketReadPolicy  = "-BucketReadPolicy"
 	bucketWritePolicy = "-BucketWritePolicy"
 )
+
+func RegisterRoutes(r *gin.RouterGroup) {
+	r.GET("/aws/s3", listS3BucketsHandler)
+	r.POST("/aws/s3", newS3BucketHandler)
+	r.POST("/aws/s3/:bucketname/user", newS3UserHandler)
+
+	r.GET("/aws/ec2", listEC2InstancesHandler)
+	r.POST("/aws/ec2/:instanceid/:state", setEC2InstanceStateHandler)
+}
+
+func GetEC2Client(stage string) (*ec2.EC2, error) {
+	account, err := getAccountForStage(stage)
+	if err != nil {
+		return nil, err
+	}
+
+	sess, err := getAwsSession(account)
+	if err != nil {
+		return nil, err
+	}
+	return ec2.New(sess), nil
+}
 
 func GetS3Client(stage string) (*s3.S3, error) {
 	account, err := getAccountForStage(stage)

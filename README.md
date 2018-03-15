@@ -59,7 +59,7 @@ LDAP\_SEARCH\_BASE|LDAP Search Base|ou=passport-ldapauth
 LDAP\_FILTER|LDAP Filter|(uid=%s)
 SESSION\_KEY|A secret password to encrypt session information|secret
 OPENSHIFT\_API\_URL|Your OpenShift API Url|https://master01.ch:8443
-OPENSHIFT\_TOKEN|The token from the service-account| 
+OPENSHIFT\_TOKEN|The token from the service-account|
 MAX\_QUOTA\_CPU|How many CPU can a user assign to his project|30
 MAX\_QUOTA\_MEMORY|How many GB memory can a user assign to his project|50
 GLUSTER\_API\_URL|The URL of your Gluster-API|http://glusterserver01:80
@@ -123,3 +123,9 @@ Content-Length: 70
 ```
 
 For the other (internal) endpoints see the code (glusterapi/main.go)
+
+# Contributing
+There is a small script for locally testing the API. It handles authorization (login, token etc).
+```
+go run curl.go [-X GET/POST] http://localhost:8080/api/...
+```
