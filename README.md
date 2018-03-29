@@ -76,6 +76,11 @@ AWS\_REGION|Region for all the aws artifacts|eu-central-1
 SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
 SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
 
+### Route timeout
+The `api/aws/ec2` endpoints wait until VMs have the desired state.
+This can exceed the default timeout and result in a 504 error on the client.
+Increasing the route timeout is described here: https://docs.openshift.org/latest/architecture/networking/routes.html#route-specific-annotations
+
 ## The GlusterFS api
 Use/see the service unit file in ./glusterapi/install/
 
@@ -125,6 +130,17 @@ Content-Length: 70
 For the other (internal) endpoints see the code (glusterapi/main.go)
 
 # Contributing
+The backend can be started with Docker. All required environment variables must be set in the `env_vars` file.
+```
+# without proxy:
+docker build -p 8080:8080 -t ssp-backend .
+# with proxy:
+docker build -p 8080:8080 --build-arg https_proxy=http://proxy.ch:9000 -t ssp-backend .
+
+# env_vars must not contain export and quotes
+docker run -it --rm --env-file <(sed "s/export\s//" env_vars | tr -d "'") ssp-backend
+```
+
 There is a small script for locally testing the API. It handles authorization (login, token etc).
 ```
 go run curl.go [-X GET/POST] http://localhost:8080/api/...

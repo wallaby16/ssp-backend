@@ -1,17 +1,9 @@
-FROM golang:1.8
+FROM golang as builder
+WORKDIR /go/src/github.com/oscp/cloud-selfservice-portal-backend
+COPY . .
+RUN go get -v ./server
 
-MAINTAINER Reto Lehmann <reto.lehmann@sbb.ch>
-
-WORKDIR /usr/ssp/
-
-# Download the sources and UI from github
-RUN apt-get update && apt-get install -y wget curl \
-  && curl -s https://api.github.com/repos/oscp/cloud-selfservice-portal-backend/releases/latest -k \
-     | grep "browser_download_url" | cut -d : -f 2,3 | tr -d \" | wget -qi - \
-  && tar xfvz self-service-portal-backend.tar.gz \
-  && mv dist/* . \
-  && apt-get purge -y --auto-remove wget curl
-
+FROM centos:7
+COPY --from=builder /go/bin/server /usr/local/bin
 EXPOSE 8080
-
-CMD ["/usr/ssp/server"]
+ENTRYPOINT server
