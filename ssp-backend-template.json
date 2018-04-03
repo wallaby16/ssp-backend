@@ -28,19 +28,6 @@
                 "triggers": [
                     {
                         "type": "ConfigChange"
-                    },
-                    {
-                        "type": "ImageChange",
-                        "imageChangeParams": {
-                            "automatic": true,
-                            "containerNames": [
-                                "ssp-backend"
-                            ],
-                            "from": {
-                                "kind": "ImageStreamTag",
-                                "name": "ssp-backend:latest"
-                            }
-                        }
                     }
                 ],
                 "replicas": 1,
@@ -60,7 +47,7 @@
                         "containers": [
                             {
                                 "name": "ssp-backend",
-                                "image": "ssp-backend",
+                                "image": "${DOCKER_IMAGE}",
                                 "ports": [
                                     {
                                         "containerPort": 8080,
@@ -241,30 +228,6 @@
                 },
                 "type": "ClusterIP",
                 "sessionAffinity": "None"
-            }
-        },
-        {
-            "kind": "ImageStream",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "ssp-backend",
-                "labels": {
-                    "app": "ssp-backend"
-                }
-            },
-            "spec": {
-                "tags": [
-                    {
-                        "name": "latest",
-                        "from": {
-                            "kind": "DockerImage",
-                            "name": "${DOCKER_IMAGE}"
-                        },
-                        "importPolicy": {
-                            "scheduled": true
-                        }
-                    }
-                ]
             }
         }
     ],
