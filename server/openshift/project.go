@@ -25,7 +25,7 @@ func newProjectHandler(c *gin.Context) {
 			return
 		}
 
-		if err := createNewProject(data.Project, username, data.Billing, data.MegaId); err != nil {
+		if err := createNewProject(data.Project, username, data.Billing, data.MegaId, false); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
@@ -51,7 +51,7 @@ func newTestProjectHandler(c *gin.Context) {
 			return
 		}
 
-		if err := createNewProject(data.Project, username, billing, ""); err != nil {
+		if err := createNewProject(data.Project, username, billing, "", true); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
@@ -106,7 +106,7 @@ func updateBillingHandler(c *gin.Context) {
 			return
 		}
 
-		if err := createOrUpdateMetadata(data.Project, data.Billing, "", username); err != nil {
+		if err := createOrUpdateMetadata(data.Project, data.Billing, "", username, false); err != nil {
 			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: err.Error()})
 		} else {
 			c.JSON(http.StatusOK, common.ApiResponse{
@@ -118,12 +118,12 @@ func updateBillingHandler(c *gin.Context) {
 	}
 }
 
-func validateNewProject(project string, billing string, isTestproject bool) error {
+func validateNewProject(project string, billing string, testProject bool) error {
 	if len(project) == 0 {
 		return errors.New("Projektname muss angegeben werden")
 	}
 
-	if !isTestproject && len(billing) == 0 {
+	if !testProject && len(billing) == 0 {
 		return errors.New("Kontierungsnummer muss angegeben werden")
 	}
 
@@ -160,7 +160,7 @@ func validateBillingInformation(project string, billing string, username string)
 	return nil
 }
 
-func createNewProject(project string, username string, billing string, megaid string) error {
+func createNewProject(project string, username string, billing string, megaid string, testProject bool) error {
 	project = strings.ToLower(project)
 	p := newObjectRequest("ProjectRequest", project)
 
@@ -180,7 +180,7 @@ func createNewProject(project string, username string, billing string, megaid st
 			return err
 		}
 
-		if err := createOrUpdateMetadata(project, billing, megaid, username); err != nil {
+		if err := createOrUpdateMetadata(project, billing, megaid, username, testProject); err != nil {
 			return err
 		}
 		return nil
@@ -262,7 +262,7 @@ func getProjectBillingInformation(project string) (string, error) {
 	}
 }
 
-func createOrUpdateMetadata(project string, billing string, megaid string, username string) error {
+func createOrUpdateMetadata(project string, billing string, megaid string, username string, testProject bool) error {
 	client, req := getOseHTTPClient("GET", "api/v1/namespaces/"+project, nil)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -281,6 +281,11 @@ func createOrUpdateMetadata(project string, billing string, megaid string, usern
 	annotations := json.Path("metadata.annotations")
 	annotations.Set(billing, "openshift.io/kontierung-element")
 	annotations.Set(username, "openshift.io/requester")
+
+	if testProject {
+		annotations.Set(testProjectDeletionDays, "openshift.io/testproject-daystodeletion")
+		annotations.Set(fmt.Sprintf("Dieses Testprojekt wird in %v Tagen automatisch gelöscht!", testProjectDeletionDays), "openshift.io/description")
+	}
 
 	if len(megaid) > 0 {
 		annotations.Set(megaid, "openshift.io/MEGAID")
