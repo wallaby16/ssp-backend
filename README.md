@@ -75,6 +75,7 @@ AWS\_S3\_BUCKET_PREFIX|Prefix for all generated S3 buckets|mycompany
 AWS\_REGION|Region for all the aws artifacts|eu-central-1
 SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
 SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
+SEC\_API\_PASSWORD|Password for basic auth routes (optional)|pass
 
 ### Route timeout
 The `api/aws/ec2` endpoints wait until VMs have the desired state.

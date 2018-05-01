@@ -38,6 +38,10 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/gluster/volume/grow", growVolumeHandler)
 }
 
+func RegisterSecRoutes(r *gin.RouterGroup) {
+	r.POST("/gluster/volume/fix", fixVolumeHandler)
+}
+
 func getProjectAdminsAndOperators(project string) ([]string, []string, error) {
 	policyBindings, err := getPolicyBindings(project)
 	if err != nil {
@@ -104,6 +108,11 @@ func checkAdminPermissions(username string, project string) error {
 	}
 
 	username = strings.ToLower(username)
+
+	// allow full access via basic auth
+	if username == "sec_api" {
+		return nil
+	}
 
 	// Access for admins
 	for _, a := range admins {
