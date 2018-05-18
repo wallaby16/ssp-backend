@@ -75,6 +75,7 @@ AWS\_S3\_BUCKET\_PREFIX|Prefix for all generated S3 buckets|mycompany
 AWS\_REGION|Region for all the aws artifacts|eu-central-1
 SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
 SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
+LOGSENE\_DISCOUNTCODE|Discount code for Sematext (optional)|yourcode
 SEC\_API\_PASSWORD|Password for basic auth login of SEC\_API user (optional)|pass
 
 ### Route timeout
