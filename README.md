@@ -71,11 +71,11 @@ AWS\_PROD\_ACCESS\_KEY\_ID|AWS Access Key ID to manage AWS ressources for produc
 AWS\_PROD\_SECRET\_ACCESS\_KEY|AWS Secret Access Key to manage AWS ressources for production buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 AWS\_NONPROD\_ACCESS\_KEY\_ID|AWS Access Key ID to manage AWS ressources for development buckets|AKIAIOSFODNN7EXAMPLE
 AWS\_NONPROD\_SECRET\_ACCESS\_KEY|AWS Secret Access Key to manage AWS ressources for development buckets|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS\_S3\_BUCKET_PREFIX|Prefix for all generated S3 buckets|mycompany
+AWS\_S3\_BUCKET\_PREFIX|Prefix for all generated S3 buckets|mycompany
 AWS\_REGION|Region for all the aws artifacts|eu-central-1
 SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
 SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
-SEC\_API\_PASSWORD|Password for basic auth routes (optional)|pass
+SEC\_API\_PASSWORD|Password for basic auth login of SEC\_API user (optional)|pass
 
 ### Route timeout
 The `api/aws/ec2` endpoints wait until VMs have the desired state.

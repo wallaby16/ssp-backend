@@ -146,6 +146,10 @@
                                     {
                                         "name": "SEMATEXT_BASE_URL",
                                         "value": "${SEMATEXT_BASE_URL}"
+                                    },
+                                    {
+                                        "name": "SEC_API_PASSWORD",
+                                        "value": "${SEC_API_PASSWORD}"
                                     }
                                 ],
                                 "livenessProbe": {
@@ -369,6 +373,12 @@
             "description": "Base url for Sematext",
             "value": "https://apps.eu.sematext.com/",
             "required": true
+        },
+        {
+            "name": "SEC_API_PASSWORD",
+            "description": "Password for SEC_API users basic auth login",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{30}"
         }
     ]
 }
