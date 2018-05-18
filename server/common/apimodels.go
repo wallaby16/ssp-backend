@@ -37,7 +37,8 @@ type EditBillingDataCommand struct {
 }
 
 type CreateLogseneAppCommand struct {
-	AppName string `json:"appName"`
+	AppName      string `json:"appName"`
+	DiscountCode string `json:"discountCode"`
 	EditSematextPlanCommand
 	EditBillingDataCommand
 }

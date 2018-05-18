@@ -17,6 +17,7 @@ const (
 
 func RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/sematext/plans", getLogsenePlansHandler)
+	r.GET("/sematext/discountcode", getLogseneDiscountcodeHandler)
 	r.GET("/sematext/logsene", getLogseneAppsHandler)
 	r.POST("/sematext/logsene", createLogseneAppHandler)
 	r.POST("/sematext/logsene/:appId", updateLogseneBillingHandler)

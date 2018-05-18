@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -32,6 +33,10 @@ func getLogseneAppsHandler(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, appList)
 	}
+}
+
+func getLogseneDiscountcodeHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, os.Getenv("LOGSENE_DISCOUNTCODE"))
 }
 
 func getLogsenePlansHandler(c *gin.Context) {
@@ -344,6 +349,7 @@ func createLogseneApp(username string, data common.CreateLogseneAppCommand) (int
 	j := gabs.New()
 	j.Set(data.AppName, "name")
 	j.Set(data.PlanId, "initialPlanId")
+	j.Set(data.DiscountCode, "discountCode")
 	j.Set("Logsene", "appType")
 
 	client, req := getSematextHTTPClient("POST", "logsene-reports/api/v3/apps", bytes.NewReader(j.Bytes()))
