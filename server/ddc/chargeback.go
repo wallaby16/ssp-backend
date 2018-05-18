@@ -13,8 +13,8 @@ import (
 
 	"bytes"
 
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
+	"github.com/gin-gonic/gin"
 )
 
 const apiErrorDDC = "Fehler beim Aufruf der DDC-API. Bitte erstelle ein Ticket bei DDC."

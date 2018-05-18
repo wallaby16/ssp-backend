@@ -5,8 +5,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/glusterapi/gluster"
+	"github.com/gin-gonic/gin"
 )
 
 func init() {

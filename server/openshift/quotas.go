@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/Jeffail/gabs"
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
+	"github.com/gin-gonic/gin"
 )
 
 const (

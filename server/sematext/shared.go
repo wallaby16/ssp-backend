@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
+	"github.com/gin-gonic/gin"
 	"strings"
 )
 

@@ -9,8 +9,8 @@ import (
 
 	"fmt"
 
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
+	"github.com/gin-gonic/gin"
 )
 
 func newServiceAccountHandler(c *gin.Context) {

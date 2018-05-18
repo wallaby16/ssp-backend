@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/gin-gonic/gin"
-	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
 )
 
 const (

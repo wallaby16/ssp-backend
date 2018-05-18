@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/glusterapi/models"
+	"github.com/gin-gonic/gin"
 )
 
 const (
