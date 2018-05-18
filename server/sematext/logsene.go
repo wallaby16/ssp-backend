@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
 	"io/ioutil"
 	"log"
 	"net/http"

@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/aws"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/ddc"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/openshift"
-	"github.com/oscp/cloud-selfservice-portal-backend/server/sematext"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/aws"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/ddc"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/openshift"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/sematext"
 )
 
 func main() {

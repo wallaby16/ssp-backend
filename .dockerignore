@@ -1,4 +1,4 @@
-clusterPolicy-selfservice.yml
+openshift/clusterPolicy-selfservice.yml
 curl.go
 Dockerfile*
 env_vars*

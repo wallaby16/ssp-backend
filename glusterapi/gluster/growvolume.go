@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oscp/cloud-selfservice-portal-backend/glusterapi/models"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/glusterapi/models"
 )
 
 func growVolume(pvName string, newSize string) error {

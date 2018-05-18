@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oscp/cloud-selfservice-portal-backend/glusterapi/gluster"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/glusterapi/gluster"
 )
 
 func init() {

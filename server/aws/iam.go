@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 
-	"github.com/oscp/cloud-selfservice-portal-backend/server/common"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
 )
 
 const (

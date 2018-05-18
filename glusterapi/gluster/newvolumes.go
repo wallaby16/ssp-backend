@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/oscp/cloud-selfservice-portal-backend/glusterapi/models"
+	"github.com/SchweizerischeBundesbahnen/ssp-backend/glusterapi/models"
 	"regexp"
 )
 

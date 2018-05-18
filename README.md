@@ -1,5 +1,5 @@
 # General idea
-Build Status: [![Build Status](https://travis-ci.org/oscp/cloud-selfservice-portal-backend.svg?branch=master)](https://travis-ci.org/oscp/cloud-selfservice-portal-backend)
+Build Status: [![Build Status](https://travis-ci.org/SchweizerischeBundesbahnen/ssp-backend.svg?branch=master)](https://travis-ci.org/SchweizerischeBundesbahnen/ssp-backend)
 
 We at [@SchweizerischeBundesbahnen](https://github.com/SchweizerischeBundesbahnen) have a lot of projects who need changes on their projects all the time. As those settings are (and that is fine) limited to the administrator roles, we had to do a lot of manual changes like:
 
@@ -27,7 +27,7 @@ So we built this tool which allows users to do certain things in self service. T
 
 # Components
 - The Self-Service-Portal Backend (as container)
-- The Self-Service-Portal Frontend (see https://github.com/oscp/cloud-selfservice-portal-frontend)
+- The Self-Service-Portal Frontend (see https://github.com/SchweizerischeBundesbahnen/cloud-selfservice-portal-frontend)
 - The GlusterFS-API server (as a sytemd service)
 
 # Installation & Documentation
