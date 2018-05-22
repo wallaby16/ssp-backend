@@ -45,6 +45,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/aws/s3/:bucketname/user", newS3UserHandler)
 
 	r.GET("/aws/ec2", listEC2InstancesHandler)
+	r.DELETE("/aws/snapshots/:account/:snapshotid", deleteEC2InstanceSnapshotHandler)
+	r.POST("/aws/snapshots", createEC2InstanceSnapshotHandler)
 	r.POST("/aws/ec2/:instanceid/:state", setEC2InstanceStateHandler)
 }
 
@@ -59,6 +61,22 @@ func GetEC2Client(stage string) (*ec2.EC2, error) {
 		return nil, err
 	}
 	return ec2.New(sess), nil
+}
+
+func GetEC2ClientForAccount(account string) (*ec2.EC2, error) {
+	var stage string
+	if account == accountProd {
+		stage = stageProd
+	} else {
+		stage = stageDev
+	}
+
+	svc, err := GetEC2Client(stage)
+	if err != nil {
+		log.Println("Error getting EC2 client: " + err.Error())
+		return nil, err
+	}
+	return svc, nil
 }
 
 func GetS3Client(stage string) (*s3.S3, error) {

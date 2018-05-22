@@ -20,7 +20,7 @@ const (
 func listEC2InstancesHandler(c *gin.Context) {
 	username := common.GetUserName(c)
 
-	log.Print(username + " lists EC2 Instances")
+	log.Println(username + " lists EC2 Instances")
 
 	instances, err := listEC2InstancesByUsername(username)
 	if err != nil {
@@ -28,6 +28,36 @@ func listEC2InstancesHandler(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, instances)
 	}
+}
+
+func deleteEC2InstanceSnapshotHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	snapshotid := c.Param("snapshotid")
+	account := c.Param("account")
+	err := deleteSnapshot(snapshotid, account)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, common.ApiResponse{Message: genericAwsAPIError})
+		return
+	}
+	log.Println(username + " deleted snapshot " + snapshotid)
+	c.JSON(http.StatusOK, common.ApiResponse{Message: "Der Snapshot wurde erfolgreich gelöscht"})
+}
+
+func createEC2InstanceSnapshotHandler(c *gin.Context) {
+	username := common.GetUserName(c)
+	var data common.CreateSnapshotCommand
+	if c.BindJSON(&data) == nil {
+		snapshot, err := createSnapshot(data.VolumeId, data.InstanceId, data.Description, data.Account)
+		if err != nil {
+			log.Println(err)
+			c.JSON(http.StatusBadRequest, common.ApiResponse{Message: genericAwsAPIError})
+			return
+		}
+		log.Println(username + " snapshots volume " + data.VolumeId + " in instance " + data.InstanceId)
+		c.JSON(http.StatusOK, common.SnapshotApiResponse{Message: "Der Snapshot wurde erfolgreich erstellt: " + data.Description, Snapshot: *snapshot})
+		return
+	}
+	c.JSON(http.StatusBadRequest, common.ApiResponse{Message: wrongAPIUsageError})
 }
 
 func setEC2InstanceStateHandler(c *gin.Context) {
@@ -62,6 +92,56 @@ func setEC2InstanceStateHandler(c *gin.Context) {
 	}
 }
 
+func deleteSnapshot(snapshotid string, account string) error {
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		return err
+	}
+
+	_, err = svc.DeleteSnapshot(&ec2.DeleteSnapshotInput{SnapshotId: aws.String(snapshotid)})
+	if err != nil {
+		log.Println("Error creating snapshot (CreateSnapshot API call): " + err.Error())
+		return err
+	}
+	return nil
+}
+
+func createSnapshot(volumeid string, instanceid string, description string, account string) (*common.Snapshot, error) {
+	tags, err := getTags(volumeid, account)
+	if err != nil {
+		log.Println("Error getting tags: " + err.Error())
+		return nil, err
+	}
+	tags = addInstanceidTag(tags, instanceid)
+	input := &ec2.CreateSnapshotInput{
+		Description: aws.String(description),
+		VolumeId:    aws.String(volumeid),
+		TagSpecifications: []*ec2.TagSpecification{
+			{
+				ResourceType: aws.String("snapshot"),
+				Tags:         tags,
+			},
+		},
+	}
+
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		log.Println("Error getting EC2 client: " + err.Error())
+		return nil, err
+	}
+
+	snapshot, err := svc.CreateSnapshot(input)
+	if err != nil {
+		log.Println("Error creating snapshot (CreateSnapshot API call): " + err.Error())
+		return nil, err
+	}
+	return &common.Snapshot{
+		SnapshotId:  *snapshot.SnapshotId,
+		Description: *snapshot.Description,
+		StartTime:   *snapshot.StartTime,
+	}, nil
+}
+
 func getInstance(instanceid string, username string) (*common.Instance, error) {
 	instances, err := listEC2InstancesByUsername(username)
 	if err != nil {
@@ -83,14 +163,7 @@ func startEC2Instance(instanceid string, username string, account string) (*comm
 		},
 	}
 
-	var stage string
-	if account == accountProd {
-		stage = stageProd
-	} else {
-		stage = stageDev
-	}
-
-	svc, err := GetEC2Client(stage)
+	svc, err := GetEC2ClientForAccount(account)
 	if err != nil {
 		log.Println("Error getting EC2 client: " + err.Error())
 		return nil, errors.New(ec2StartError)
@@ -130,14 +203,8 @@ func stopEC2Instance(instanceid string, username string, account string) (*commo
 			aws.String(instanceid),
 		},
 	}
-	var stage string
-	if account == accountProd {
-		stage = stageProd
-	} else {
-		stage = stageDev
-	}
 
-	svc, err := GetEC2Client(stage)
+	svc, err := GetEC2ClientForAccount(account)
 	if err != nil {
 		log.Println("Error getting EC2 client: " + err.Error())
 		return nil, errors.New(ec2StopError)
@@ -204,14 +271,7 @@ func listEC2InstancesByUsernameForAccount(username string, account string) ([]co
 		},
 	}
 
-	var stage string
-	if account == accountProd {
-		stage = stageProd
-	} else {
-		stage = stageDev
-	}
-
-	svc, err := GetEC2Client(stage)
+	svc, err := GetEC2ClientForAccount(account)
 	if err != nil {
 		return nil, errors.New(ec2ListError)
 	}
@@ -223,14 +283,108 @@ func listEC2InstancesByUsernameForAccount(username string, account string) ([]co
 	}
 	for _, reservation := range result.Reservations {
 		for _, instance := range reservation.Instances {
-			instances = append(instances, getInstanceStruct(instance, account))
+			snapshots, _ := listSnapshots(instance, account)
+			volumes := listVolumes(instance)
+			instances = append(instances, getInstanceStruct(instance, account, snapshots, volumes))
 		}
 	}
 
 	return instances, nil
 }
 
-func getInstanceStruct(instance *ec2.Instance, account string) common.Instance {
+func listSnapshots(instance *ec2.Instance, account string) ([]common.Snapshot, error) {
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		return nil, errors.New(ec2ListError)
+	}
+
+	filters := &ec2.DescribeSnapshotsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("tag:instance_id"),
+				Values: []*string{
+					aws.String(*instance.InstanceId),
+				},
+			},
+		},
+	}
+
+	snapshotsOutput, err := svc.DescribeSnapshots(filters)
+	if err != nil {
+		return nil, err
+	}
+	snapshots := []common.Snapshot{}
+	for _, snapshot := range snapshotsOutput.Snapshots {
+		snapshots = append(snapshots, getSnapshotStruct(snapshot))
+	}
+	return snapshots, nil
+}
+
+func listVolumes(instance *ec2.Instance) []common.Volume {
+	volumes := []common.Volume{}
+	for _, volume := range instance.BlockDeviceMappings {
+		volumes = append(volumes, getVolumeStruct(volume))
+	}
+	return volumes
+}
+
+func getVolumeStruct(volume *ec2.InstanceBlockDeviceMapping) common.Volume {
+	return common.Volume{
+		DeviceName: *volume.DeviceName,
+		VolumeId:   *volume.Ebs.VolumeId,
+	}
+}
+
+func getSnapshotStruct(snapshot *ec2.Snapshot) common.Snapshot {
+	return common.Snapshot{
+		SnapshotId:  *snapshot.SnapshotId,
+		Description: *snapshot.Description,
+		StartTime:   *snapshot.StartTime,
+	}
+}
+
+func addInstanceidTag(tags []*ec2.Tag, instanceid string) []*ec2.Tag {
+	// check if instance_id tag already exists, if not add it
+	for _, tag := range tags {
+		if *tag.Key == "instance_id" {
+			return tags
+		}
+	}
+	tags = append(tags, &ec2.Tag{Key: aws.String("instance_id"), Value: aws.String(instanceid)})
+	return tags
+}
+
+func getTags(resourceid string, account string) ([]*ec2.Tag, error) {
+	input := &ec2.DescribeTagsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name: aws.String("resource-id"),
+				Values: []*string{
+					aws.String(resourceid),
+				},
+			},
+		},
+	}
+
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		log.Println("Error getting EC2 client: " + err.Error())
+		return nil, err
+	}
+
+	describetagsoutput, err := svc.DescribeTags(input)
+	if err != nil {
+		log.Println("Error getting EC2 tags (DescribeTags API call): " + err.Error())
+		return nil, err
+	}
+	tags := []*ec2.Tag{}
+	for _, tagdescription := range describetagsoutput.Tags {
+		tags = append(tags, &ec2.Tag{Key: tagdescription.Key, Value: tagdescription.Value})
+	}
+	return tags, nil
+}
+
+func getInstanceStruct(instance *ec2.Instance, account string, snapshots []common.Snapshot, volumes []common.Volume) common.Instance {
 	var name string
 	for _, tag := range instance.Tags {
 		if *tag.Key == "Name" {
@@ -243,5 +397,7 @@ func getInstanceStruct(instance *ec2.Instance, account string) common.Instance {
 		InstanceId: *instance.InstanceId,
 		State:      *instance.State.Name,
 		Account:    account,
+		Snapshots:  snapshots,
+		Volumes:    volumes,
 	}
 }

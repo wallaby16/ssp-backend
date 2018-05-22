@@ -1,5 +1,7 @@
 package common
 
+import "time"
+
 type ProjectName struct {
 	Project string `json:"project"`
 }
@@ -59,6 +61,13 @@ type NewServiceAccountCommand struct {
 	ServiceAccount string `json:"serviceAccount"`
 }
 
+type CreateSnapshotCommand struct {
+	InstanceId  string `json:"instanceId"`
+	VolumeId    string `json:"volumeId"`
+	Description string `json:"description"`
+	Account     string `json:"account"`
+}
+
 type FeatureToggleResponse struct {
 	Gluster bool `json:"gluster"`
 	DDC     bool `json:"ddc"`
@@ -66,6 +75,11 @@ type FeatureToggleResponse struct {
 
 type ApiResponse struct {
 	Message string `json:"message"`
+}
+
+type SnapshotApiResponse struct {
+	Message  string   `json:"message"`
+	Snapshot Snapshot `json:"snapshot"`
 }
 
 type BucketListResponse struct {
@@ -82,11 +96,24 @@ type InstanceListResponse struct {
 }
 
 type Instance struct {
-	Name                  string `json:"name"`
-	InstanceId            string `json:"id"`
-	State                 string `json:"state"`
-	StateTransitionReason string `json:"statereason"`
-	Account               string `json:"account"`
+	Name                  string     `json:"name"`
+	InstanceId            string     `json:"instanceId"`
+	State                 string     `json:"state"`
+	StateTransitionReason string     `json:"stateTransitionReason"`
+	Account               string     `json:"account"`
+	Snapshots             []Snapshot `json:"snapshots"`
+	Volumes               []Volume   `json:"volumes"`
+}
+
+type Snapshot struct {
+	SnapshotId  string    `json:"snapshotId"`
+	Description string    `json:"description"`
+	StartTime   time.Time `json:"startTime"`
+}
+
+type Volume struct {
+	DeviceName string `json:"deviceName"`
+	VolumeId   string `json:"volumeId"`
 }
 
 type S3CredentialsResponse struct {
