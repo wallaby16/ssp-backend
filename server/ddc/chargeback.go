@@ -15,6 +15,7 @@ import (
 
 	"github.com/SchweizerischeBundesbahnen/ssp-backend/server/common"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 const apiErrorDDC = "Fehler beim Aufruf der DDC-API. Bitte erstelle ein Ticket bei DDC."
@@ -56,7 +57,7 @@ func createCSVReport(rows []common.DDCBillingRow) common.DDCBilling {
 		totalString := strconv.FormatFloat(r.Total, 'f', 2, 64)
 		row := []string{"", r.Sender, "", "", "", "", "", r.Art, totalString, "CHF",
 			r.ReceptionAssignment, r.OrderReception, r.PspElement,
-			"", "", "", "", "1", "ST", "", "LM1706 DDC ", r.Project + ": " + r.Host}
+			"", "", "", "", "1", "ST", "", r.Text, r.Project + ": " + r.Host}
 		wr.Write(row)
 	}
 
@@ -89,7 +90,7 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 	}
 
 	const sender = "70029508"
-	const art = "816753"
+	const art = "816750"
 	const fee_server = 300.0
 	const fee_client = 100.0
 	const feeCpu = 30.0
@@ -97,6 +98,10 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 	const feeStorage = 1.0
 
 	result := []common.DDCBillingRow{}
+
+	// Text field contains YYMM; magic see https://medium.com/@Martynas/formatting-date-and-time-in-golang-5816112bf098
+	text := "LM" + time.Now().Format("0601") + " DDC"
+
 	for i, value := range records {
 		if i > 0 {
 			usedCpu, _ := strconv.ParseFloat(value[2], 64)
@@ -122,6 +127,7 @@ func calculateDDCBilling() ([]common.DDCBillingRow, error) {
 
 			result = append(result, common.DDCBillingRow{
 				Sender:              sender,
+				Text:                text,
 				Art:                 art,
 				ReceptionAssignment: value[5],
 				OrderReception:      value[6],
