@@ -124,7 +124,7 @@ type DDCBilling struct {
 
 type DDCBillingRow struct {
 	Sender              string  `json:"sender"`
-	Text  				string  `json:"text"`
+	Text                string  `json:"text"`
 	Art                 string  `json:"art"`
 	Project             string  `json:"project"`
 	Host                string  `json:"host"`
