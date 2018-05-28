@@ -384,6 +384,27 @@ func getTags(resourceid string, account string) ([]*ec2.Tag, error) {
 	return tags, nil
 }
 
+func getImageName(imageId string, account string) (*string, error) {
+	input := &ec2.DescribeImagesInput{
+		ImageIds: []*string{
+			aws.String(imageId),
+		},
+	}
+
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		log.Println("Error getting EC2 client: " + err.Error())
+		return nil, err
+	}
+
+	describeImagesOutput, err := svc.DescribeImages(input)
+	if err != nil {
+		log.Println("Error getting EC2 image name (DescribeImages API call): " + err.Error())
+		return nil, err
+	}
+	return describeImagesOutput.Images[0].Name, nil
+}
+
 func getInstanceStruct(instance *ec2.Instance, account string, snapshots []common.Snapshot, volumes []common.Volume) common.Instance {
 	var name string
 	for _, tag := range instance.Tags {
@@ -392,12 +413,20 @@ func getInstanceStruct(instance *ec2.Instance, account string, snapshots []commo
 			break
 		}
 	}
+	imageName, _ := getImageName(*instance.ImageId, account)
+
 	return common.Instance{
-		Name:       name,
-		InstanceId: *instance.InstanceId,
-		State:      *instance.State.Name,
-		Account:    account,
-		Snapshots:  snapshots,
-		Volumes:    volumes,
+		Name:             name,
+		InstanceId:       *instance.InstanceId,
+		InstanceType:     *instance.InstanceType,
+		ImageId:          *instance.ImageId,
+		ImageName:        *imageName,
+		LaunchTime:       instance.LaunchTime,
+		PrivateIpAddress: *instance.PrivateIpAddress,
+		State:            *instance.State.Name,
+		Account:          account,
+		Snapshots:        snapshots,
+		Volumes:          volumes,
+		Tags:             instance.Tags,
 	}
 }

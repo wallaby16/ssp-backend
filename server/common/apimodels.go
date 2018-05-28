@@ -1,6 +1,7 @@
 package common
 
 import "time"
+import "github.com/aws/aws-sdk-go/service/ec2"
 
 type ProjectName struct {
 	Project string `json:"project"`
@@ -96,13 +97,18 @@ type InstanceListResponse struct {
 }
 
 type Instance struct {
-	Name                  string     `json:"name"`
-	InstanceId            string     `json:"instanceId"`
-	State                 string     `json:"state"`
-	StateTransitionReason string     `json:"stateTransitionReason"`
-	Account               string     `json:"account"`
-	Snapshots             []Snapshot `json:"snapshots"`
-	Volumes               []Volume   `json:"volumes"`
+	Name             string     `json:"name"`
+	InstanceId       string     `json:"instanceId"`
+	InstanceType     string     `json:"instanceType"`
+	ImageId          string     `json:"imageId"`
+	ImageName        string     `json:"imageName"`
+	LaunchTime       *time.Time `json:"launchTime"`
+	State            string     `json:"state"`
+	PrivateIpAddress string     `json:"privateIpAddress"`
+	Account          string     `json:"account"`
+	Snapshots        []Snapshot `json:"snapshots"`
+	Volumes          []Volume   `json:"volumes"`
+	Tags             []*ec2.Tag `json:"tags"`
 }
 
 type Snapshot struct {
