@@ -107,6 +107,7 @@ type Instance struct {
 
 type Snapshot struct {
 	SnapshotId  string    `json:"snapshotId"`
+	DeviceName  string    `json:"deviceName"`
 	Description string    `json:"description"`
 	StartTime   time.Time `json:"startTime"`
 }
