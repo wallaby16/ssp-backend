@@ -135,11 +135,9 @@ func createSnapshot(volumeid string, instanceid string, description string, acco
 		log.Println("Error creating snapshot (CreateSnapshot API call): " + err.Error())
 		return nil, err
 	}
-	return &common.Snapshot{
-		SnapshotId:  *snapshot.SnapshotId,
-		Description: *snapshot.Description,
-		StartTime:   *snapshot.StartTime,
-	}, nil
+	deviceName, _ := getDeviceName(*snapshot.VolumeId, account)
+	csnapshot := getSnapshotStruct(snapshot, *deviceName)
+	return &csnapshot, nil
 }
 
 func getInstance(instanceid string, username string) (*common.Instance, error) {
