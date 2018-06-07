@@ -135,11 +135,9 @@ func createSnapshot(volumeid string, instanceid string, description string, acco
 		log.Println("Error creating snapshot (CreateSnapshot API call): " + err.Error())
 		return nil, err
 	}
-	return &common.Snapshot{
-		SnapshotId:  *snapshot.SnapshotId,
-		Description: *snapshot.Description,
-		StartTime:   *snapshot.StartTime,
-	}, nil
+	deviceName, _ := getDeviceName(*snapshot.VolumeId, account)
+	csnapshot := getSnapshotStruct(snapshot, *deviceName)
+	return &csnapshot, nil
 }
 
 func getInstance(instanceid string, username string) (*common.Instance, error) {
@@ -315,7 +313,8 @@ func listSnapshots(instance *ec2.Instance, account string) ([]common.Snapshot, e
 	}
 	snapshots := []common.Snapshot{}
 	for _, snapshot := range snapshotsOutput.Snapshots {
-		snapshots = append(snapshots, getSnapshotStruct(snapshot))
+		deviceName, _ := getDeviceName(*snapshot.VolumeId, account)
+		snapshots = append(snapshots, getSnapshotStruct(snapshot, *deviceName))
 	}
 	return snapshots, nil
 }
@@ -335,11 +334,33 @@ func getVolumeStruct(volume *ec2.InstanceBlockDeviceMapping) common.Volume {
 	}
 }
 
-func getSnapshotStruct(snapshot *ec2.Snapshot) common.Snapshot {
+func getDeviceName(volumeId string, account string) (*string, error) {
+	input := &ec2.DescribeVolumesInput{
+		VolumeIds: []*string{
+			aws.String(volumeId),
+		},
+	}
+
+	svc, err := GetEC2ClientForAccount(account)
+	if err != nil {
+		log.Println("Error getting EC2 client: " + err.Error())
+		return nil, errors.New(ec2StartError)
+	}
+
+	describeVolumesOutput, err := svc.DescribeVolumes(input)
+	if err != nil {
+		log.Println("Error getting EC2 volumes (DescribeVolumes API call): " + err.Error())
+		return nil, errors.New(ec2StartError)
+	}
+	return describeVolumesOutput.Volumes[0].Attachments[0].Device, nil
+}
+
+func getSnapshotStruct(snapshot *ec2.Snapshot, deviceName string) common.Snapshot {
 	return common.Snapshot{
 		SnapshotId:  *snapshot.SnapshotId,
 		Description: *snapshot.Description,
 		StartTime:   *snapshot.StartTime,
+		DeviceName:  deviceName,
 	}
 }
 
