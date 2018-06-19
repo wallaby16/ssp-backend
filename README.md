@@ -77,6 +77,9 @@ SEMATEXT\_API\_TOKEN|Admin token for Sematext Logsene Apps|mytoken
 SEMATEXT\_BASE\_URL|Base url for Sematext|for EU: https://apps.eu.sematext.com/
 LOGSENE\_DISCOUNTCODE|Discount code for Sematext (optional)|yourcode
 SEC\_API\_PASSWORD|Password for basic auth login of SEC\_API user (optional)|pass
+NFS\_API\_URL|The URL of your NFS-API (optional)|https://somenfsapi.ch
+NFS\_API\_SECRET|The password of the NFS-API (optional)|somesecret
+NFS\_PROXY|The proxy to access the NFS-API (optional)|https://someproxy.ch:1234
 
 ### Route timeout
 The `api/aws/ec2` endpoints wait until VMs have the desired state.

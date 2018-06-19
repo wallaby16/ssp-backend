@@ -9,9 +9,10 @@ type ProjectName struct {
 
 type NewVolumeCommand struct {
 	ProjectName
-	Size    string `json:"size"`
-	PvcName string `json:"pvcName"`
-	Mode    string `json:"mode"`
+	Size       string `json:"size"`
+	PvcName    string `json:"pvcName"`
+	Mode       string `json:"mode"`
+	Technology string `json:"technology"`
 }
 
 type FixVolumeCommand struct {
@@ -69,9 +70,36 @@ type CreateSnapshotCommand struct {
 	Account     string `json:"account"`
 }
 
+type WorkflowCommand struct {
+	UserInputValues []WorkflowKeyValue `json:"userInputValues"`
+}
+
+type WorkflowKeyValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type WorkflowJob struct {
+	JobId     int               `json:"jobId"`
+	JobStatus WorkflowJobStatus `json:"jobStatus"`
+}
+
+type WorkflowJobStatus struct {
+	JobStatus                 string                    `json:"jobStatus"`
+	ErrorMessage              string                    `json:"errorMessage"`
+	ReturnParameters          []WorkflowKeyValue        `json:"returnParameters"`
+	WorkflowExecutionProgress WorkflowExecutionProgress `json:"workflow-execution-progress"`
+}
+
+type WorkflowExecutionProgress struct {
+	CurrentCommandIndex float64 `json:"current-command-index"`
+	CommandsNumber      float64 `json:"commands-number"`
+}
+
 type FeatureToggleResponse struct {
 	Gluster bool `json:"gluster"`
 	DDC     bool `json:"ddc"`
+	Nfs     bool `json:"nfs"`
 }
 
 type ApiResponse struct {
@@ -83,6 +111,11 @@ type SnapshotApiResponse struct {
 	Snapshot Snapshot `json:"snapshot"`
 }
 
+type NewVolumeApiResponse struct {
+	Message string            `json:"message"`
+	Data    NewVolumeResponse `json:"data"`
+}
+
 type BucketListResponse struct {
 	Buckets []Bucket `json:"buckets"`
 }
@@ -90,6 +123,13 @@ type BucketListResponse struct {
 type Bucket struct {
 	Name    string `json:"name"`
 	Account string `json:"account"`
+}
+
+type NewVolumeResponse struct {
+	PvName string
+	Server string
+	Path   string
+	JobId  int
 }
 
 type InstanceListResponse struct {

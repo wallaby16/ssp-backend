@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -32,10 +33,12 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/ose/billing", updateBillingHandler)
 	r.POST("/ose/quotas", editQuotasHandler)
 
-	// GlusterFS
-	r.POST("/gluster/volume", newVolumeHandler)
-	r.POST("/gluster/volume/fix", fixVolumeHandler)
-	r.POST("/gluster/volume/grow", growVolumeHandler)
+	// Volumes (Gluster and NFS)
+	r.POST("/ose/volume", newVolumeHandler)
+	r.POST("/ose/volume/grow", growVolumeHandler)
+	r.POST("/ose/volume/gluster/fix", fixVolumeHandler)
+	// Get job status for NFS volumes because it takes a while
+	r.GET("/ose/volume/jobs/:job", jobStatusHandler)
 }
 
 func RegisterSecRoutes(r *gin.RouterGroup) {
@@ -228,6 +231,44 @@ func getGlusterHTTPClient(url string, body io.Reader) (*http.Client, *http.Reque
 	}
 
 	req.SetBasicAuth("GLUSTER_API", apiSecret)
+
+	return client, req
+}
+
+func getNfsHTTPClient(method string, apiPath string, body io.Reader) (*http.Client, *http.Request) {
+	apiUrl := os.Getenv("NFS_API_URL")
+	apiSecret := os.Getenv("NFS_API_SECRET")
+	nfsProxy := os.Getenv("NFS_PROXY")
+
+	if len(apiUrl) == 0 || len(apiSecret) == 0 || len(nfsProxy) == 0 {
+		log.Fatal("Env variables 'NFS_PROXY', 'NFS_API_URL' and 'NFS_API_SECRET' must be specified")
+	}
+
+	// Create http client with proxy:
+	// https://blog.abhi.host/blog/2016/02/27/golang-creating-https-connection-via/
+	proxyURL, err := url.Parse(nfsProxy)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+
+	transport := http.Transport{
+		Proxy:           http.ProxyURL(proxyURL),
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: &transport}
+	req, err := http.NewRequest(method, fmt.Sprintf("%v/%v", apiUrl, apiPath), body)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+
+	if common.DebugMode() {
+		log.Printf("Calling %v", req.URL.String())
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.SetBasicAuth("sbb_openshift", apiSecret)
 
 	return client, req
 }
