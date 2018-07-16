@@ -41,6 +41,9 @@ rules:
   verbs:
   - create
   - list
+  - get
+  - patch
+  - delete
 - apiGroups: null
   attributeRestrictions: null
   resources:

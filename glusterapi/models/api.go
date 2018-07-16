@@ -19,6 +19,10 @@ type GrowVolumeCommand struct {
 	NewSize string `json:"newSize"`
 }
 
+type DeleteVolumeCommand struct {
+	LvName string `json:"lvName"`
+}
+
 // VolInfo is the response model for the volume info endpoint
 type VolInfo struct {
 	TotalKiloBytes int `json:"totalKiloBytes"`
