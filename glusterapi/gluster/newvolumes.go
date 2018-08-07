@@ -243,6 +243,9 @@ func createGlusterVolume(project string, pvNumber int, mountPoint string) error 
 		volCmd,
 
 		fmt.Sprintf("gluster volume start vol_%v_pv%v", project, pvNumber),
+
+		fmt.Sprintf("gluster volume set vol_%v_pv%v user.smb disable", project, pvNumber),
+		fmt.Sprintf("gluster volume set vol_%v_pv%v user.cifs disable", project, pvNumber),
 	}
 
 	if err := executeCommandsLocally(commands); err != nil {
