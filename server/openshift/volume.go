@@ -244,13 +244,12 @@ func validateSize(size string) error {
 
 func checkPvcName(project string, pvcName string) error {
 	client, req := getOseHTTPClient("GET", fmt.Sprintf("api/v1/namespaces/%v/persistentvolumeclaims", project), nil)
-	resp, err := client.Do(req)
 
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error from server while getting pvc-list: ", err.Error())
 		return errors.New(genericAPIError)
 	}
-
 	defer resp.Body.Close()
 
 	json, err := gabs.ParseJSONBuffer(resp.Body)
@@ -338,8 +337,8 @@ func createGlusterVolume(project string, size string, username string) (*common.
 		log.Println("Error calling gluster-api", err.Error())
 		return nil, errors.New(genericAPIError)
 	}
-
 	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusOK {
 		log.Printf("%v created a gluster volume. Project: %v, size: %v", username, project, size)
 
@@ -387,11 +386,11 @@ func createNfsVolume(project string, pvcName string, size string, username strin
 	client, req := getNfsHTTPClient("POST", fmt.Sprintf("workflows/%v/jobs", apiCreateWorkflowUuid), body)
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Println("Error calling nfs-api", err.Error())
 		return nil, errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	job := &common.WorkflowJob{}
 	if resp.StatusCode == http.StatusCreated {
@@ -447,12 +446,14 @@ func createNfsVolume(project string, pvcName string, size string, username strin
 
 func getJob(jobId int) (*common.WorkflowJob, error) {
 	client, req := getNfsHTTPClient("GET", fmt.Sprintf("workflows/jobs/%v", jobId), nil)
+
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Println("Error calling nfs-api", err.Error())
 		return nil, errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusOK {
 		var body common.WorkflowJob
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
@@ -517,11 +518,11 @@ func growNfsVolume(project string, newSize string, pvName string, username strin
 	client, req := getNfsHTTPClient("POST", fmt.Sprintf("workflows/%v/jobs", apiChangeWorkflowUuid), body)
 
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Println("Error calling nfs-api", err.Error())
 		return errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	job := &common.WorkflowJob{}
 	if resp.StatusCode == http.StatusCreated {
@@ -573,8 +574,8 @@ func growGlusterVolume(project string, newSize string, pvName string, username s
 		log.Println("Error calling gluster-api", err.Error())
 		return errors.New(genericAPIError)
 	}
-
 	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusOK {
 		log.Printf("%v grew gluster volume. Project: %v, newSize: %v", username, project, newSize)
 		return nil
@@ -608,9 +609,11 @@ func createOpenShiftPV(size string, pvName string, server string, path string, m
 		bytes.NewReader(p.Bytes()))
 
 	resp, err := client.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
+	if err != nil {
+		log.Println("Error creating Openshift PV", err.Error())
+		return errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated {
 		log.Printf("Created the pv %v based on the request of %v", pvName, username)
@@ -635,9 +638,11 @@ func createOpenShiftPVC(project string, size string, pvcName string, mode string
 		bytes.NewReader(p.Bytes()))
 
 	resp, err := client.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
+	if err != nil {
+		log.Println("Error creating Openshift PVC", err.Error())
+		return errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated {
 		log.Printf("Created the pvc %v based on the request of %v", pvcName, username)
@@ -676,9 +681,11 @@ func createOpenShiftGlusterService(project string, username string) error {
 		bytes.NewReader(p.Bytes()))
 
 	resp, err := client.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
+	if err != nil {
+		log.Println("Error creating Openshift Gluster service", err.Error())
+		return errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated {
 		log.Printf("Created the gluster service based on the request of %v", username)
@@ -707,9 +714,11 @@ func createOpenShiftGlusterEndpoint(project string, username string) error {
 		bytes.NewReader(p.Bytes()))
 
 	resp, err := client.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
+	if err != nil {
+		log.Println("Error creating Openshift Gluster endpoint", err.Error())
+		return errors.New(genericAPIError)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated {
 		log.Printf("Created the gluster endpoints based on the request of %v", username)
