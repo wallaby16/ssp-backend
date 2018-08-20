@@ -60,7 +60,8 @@ type EditQuotasCommand struct {
 
 type NewServiceAccountCommand struct {
 	ProjectName
-	ServiceAccount string `json:"serviceAccount"`
+	ServiceAccount  string `json:"serviceAccount"`
+	OrganizationKey string `json:"organizationKey"`
 }
 
 type CreateSnapshotCommand struct {

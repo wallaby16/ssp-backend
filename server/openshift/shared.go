@@ -215,6 +215,28 @@ func getOseHTTPClient(method string, endURL string, body io.Reader) (*http.Clien
 	return client, req
 }
 
+func getWZUBackendClient(method string, endUrl string, body io.Reader) (*http.Client, *http.Request) {
+	wzuBackendUrl := os.Getenv("WZUBACKEND_URL")
+	wzuBackendSecret := os.Getenv("WZUBACKEND_SECRET")
+	if len(wzuBackendUrl) == 0 || len(wzuBackendSecret) == 0 {
+		log.Fatal("Env variable 'wzuBackendUrl' and 'WZUBACKEND_SECRET' must be specified")
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	req, _ := http.NewRequest(method, wzuBackendUrl+"/"+endUrl, body)
+
+	if common.DebugMode() {
+		log.Print("Calling ", req.URL.String())
+	}
+
+	req.SetBasicAuth("CLOUD_SSP", wzuBackendSecret)
+
+	return client, req
+}
+
 func getGlusterHTTPClient(url string, body io.Reader) (*http.Client, *http.Request) {
 	apiUrl := os.Getenv("GLUSTER_API_URL")
 	apiSecret := os.Getenv("GLUSTER_SECRET")
