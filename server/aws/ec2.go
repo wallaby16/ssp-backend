@@ -423,6 +423,11 @@ func getImageName(imageId string, account string) (*string, error) {
 		log.Println("Error getting EC2 image name (DescribeImages API call): " + err.Error())
 		return nil, err
 	}
+	if len(describeImagesOutput.Images) == 0 {
+		// You may not be permitted to view it
+		unknownstr := "Unknown"
+		return &unknownstr, nil
+	}
 	return describeImagesOutput.Images[0].Name, nil
 }
 
