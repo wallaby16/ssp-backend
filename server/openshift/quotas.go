@@ -105,14 +105,14 @@ func updateQuotas(username string, project string, cpu string, memory string) er
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Sprintf(getQuotasApiError, err.Error())
+		log.Printf(getQuotasApiError, err.Error())
 		return errors.New(genericAPIError)
 	}
 	defer resp.Body.Close()
 
 	json, err := gabs.ParseJSONBuffer(resp.Body)
 	if err != nil {
-		fmt.Sprintf(jsonDecodingError, err)
+		log.Printf(jsonDecodingError, err)
 		return errors.New(genericAPIError)
 	}
 

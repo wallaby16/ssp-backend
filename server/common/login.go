@@ -31,7 +31,7 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 		Timeout:       time.Hour,
 		MaxRefresh:    time.Hour,
 		Authenticator: ldapAuthenticator,
-		Authorizator: func(userId string, c *gin.Context) bool {
+		Authorizator: func(userId interface{}, c *gin.Context) bool {
 			return true
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {
@@ -46,18 +46,18 @@ func GetAuthMiddleware() *jwt.GinJWTMiddleware {
 	}
 }
 
-func userPayloadFunc(userID string) map[string]interface{} {
-	if mail, ok := userCache.Get(userID); ok {
+func userPayloadFunc(userID interface{}) jwt.MapClaims {
+	if mail, ok := userCache.Get(userID.(string)); ok {
 		res := make(map[string]interface{})
 		res["mail"] = mail
 		return res
 	} else {
-		log.Println("Error, could not find mail for user: " + userID + " - Sematext functions will not work correctly")
+		log.Println("Error, could not find mail for user: " + userID.(string) + " - Sematext functions will not work correctly")
 		return nil
 	}
 }
 
-func ldapAuthenticator(userID string, password string, c *gin.Context) (string, bool) {
+func ldapAuthenticator(userID string, password string, c *gin.Context) (interface{}, bool) {
 	ldapHost := os.Getenv("LDAP_URL")
 	ldapBind := os.Getenv("LDAP_BIND_DN")
 	ldapBindPw := os.Getenv("LDAP_BIND_CRED")
