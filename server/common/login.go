@@ -58,9 +58,15 @@ func userPayloadFunc(userID interface{}) jwt.MapClaims {
 }
 
 func ldapAuthenticator(userID string, password string, c *gin.Context) (interface{}, bool) {
-	ldapHost := os.Getenv("LDAP_URL")
-	ldapBind := os.Getenv("LDAP_BIND_DN")
-	ldapBindPw := os.Getenv("LDAP_BIND_CRED")
+	//ldapHost := os.Getenv("LDAP_URL")
+	//ldapBind := os.Getenv("LDAP_BIND_DN")
+	//ldapBindPw := os.Getenv("LDAP_BIND_CRED")
+	//ldapFilter := os.Getenv("LDAP_FILTER")
+	//ldapSearchBase := os.Getenv("LDAP_SEARCH_BASE")
+	
+	ldapHost := xplat.fis.vn
+	ldapBind := xplat\\Administrator
+	ldapBindPw := Abcd@1234
 	ldapFilter := os.Getenv("LDAP_FILTER")
 	ldapSearchBase := os.Getenv("LDAP_SEARCH_BASE")
 
